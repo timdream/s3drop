@@ -1,5 +1,5 @@
-(function () {
-jQuery(function ($) {
+(function ($) {
+$(function () {
 	$('#file_containor').bind(
 		'drop',
 		function (ev) {
@@ -105,4 +105,4 @@ function startUpload() {
 	xhr.send(formData);
 }
 
-})();
+})(jQuery);
