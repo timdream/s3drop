@@ -49,9 +49,13 @@ $(function () {
 
 var queue = [],
     uploading = false,
-    $status = $('#status');
+    $status = $('#status'),
+    $filelist = $('#filelist'),
+    baseHref = window.location.href.substr(0,
+                                           window.location.href.lastIndexOf('/') + 1)
+               + 'files/';
 
-if (!window.FormData || !window.XMLHttpRequest) {
+if (!window.FormData || !window.XMLHttpRequest || !window.JSON) {
   $status.text('Error: Browser unsupported.');
 }
 
@@ -96,6 +100,22 @@ function startUpload() {
       uploading = false;
       updateStatus();
       if(xhr.status == 200) {
+        var data;
+        try {
+          data = JSON.parse(xhr.responseText);
+        } catch (e) { }
+
+        if (data) {
+          $('#filelist').append(
+            $('<li/>').append(
+              $('<a/>').attr('href', baseHref + data.filename).text(data.filename)));
+        } else {
+          $('#filelist').append(
+            $('<li/>').text('File ' + file.name + ' upload failed.'));
+          if (window.console)
+            window.console.log(xhr.responseText);
+        }
+
         if (queue.length) startUpload();
       } else {
         alert('Upload failed!');

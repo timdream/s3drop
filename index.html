@@ -13,6 +13,7 @@
     border: 10px solid #ddd;
     -moz-border-radius: 100px;
     -webkit-border-radius: 100px;
+    border-radius: 100px;
     overflow: hidden;
   }
   #file_containor:hover {
@@ -37,6 +38,16 @@
     text-align: center;
     white-space: nowrap;
   }
+  #filelist {
+    position: absolute;
+    top: 50%; left: 50%;
+    margin: 240px 0 0 -200px;
+    width: 400px; height: auto;
+    overflow: visible;
+    font: 0.92em sans-serif;
+    text-align: left;
+    white-space: nowrap;
+  }
 </style>
 </head>
 <body>
@@ -44,6 +55,7 @@
   <p id="file_containor"><input type="file" id="files" multiple /></p>
   <p id="status">Drop files on above button, or click to select files.
 You may select more files while uploading.</p>
+  <ul id="filelist"></ul>
 </form>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
 <script type="text/javascript" src="./drop.js"></script>
