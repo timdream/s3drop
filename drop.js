@@ -52,7 +52,7 @@ var queue = [],
     $status = $('#status');
 
 if (!window.FormData || !window.XMLHttpRequest) {
-	$status.text('Error: Browser unsupported. 錯誤，不支援的瀏覽器。');
+	$status.text('Error: Browser unsupported.');
 }
 
 function updateStatus(loaded, total) {
@@ -98,7 +98,7 @@ function startUpload() {
 			if(xhr.status == 200) {
 				if (queue.length) startUpload();
 			} else {
-				alert('Upload failed! 上傳失敗！');
+				alert('Upload failed!');
 			}
 		}
 	};
