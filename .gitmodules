@@ -1,0 +1,3 @@
+[submodule "assets/go2"]
+	path = assets/go2
+	url = git://github.com/timdream/google-oauth2-web-client.git

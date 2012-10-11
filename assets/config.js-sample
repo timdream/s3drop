@@ -1,0 +1,3 @@
+// Google OAuth 2 Client ID that you got from
+// https://code.google.com/apis/console
+var google_oauth2_client_id = 'xxxxxxx.apps.googleusercontent.com';

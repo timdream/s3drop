@@ -50,10 +50,39 @@ $(function () {
 var queue = [],
     uploading = false,
     $status = $('#status'),
+    $login = $('#login'),
+    access_token,
     $filelist = $('#filelist'),
     baseHref = window.location.href.substr(0,
                                            window.location.href.lastIndexOf('/') + 1)
                + 'files/';
+
+if (!window.google_oauth2_client_id) {
+  alert('You need to supply your Google OAuth2 Client ID in config.js.');
+}
+
+GO2.init(
+  window.google_oauth2_client_id,
+  'https://www.googleapis.com/auth/userinfo.email'
+);
+
+$login.children('a').on(
+  'click',
+  function (ev) {
+    ev.preventDefault();
+
+    if (access_token)
+      return;
+
+    GO2.getToken(function gotToken(token) {
+      if (!token)
+        return;
+
+      access_token = token;
+      $login.remove();
+    });
+  }
+);
 
 if (!window.FormData || !window.XMLHttpRequest || !window.JSON) {
   $status.text('Error: Browser unsupported.');
@@ -74,6 +103,11 @@ function xhrProgressHandler(ev) {
 }
 
 function addQueue(filelist) {
+  if (!access_token) {
+    alert('You need to login first.');
+    return;
+  }
+
   if (!filelist) return;
   $.each(
     filelist,
@@ -90,6 +124,7 @@ function startUpload() {
       xhr = new XMLHttpRequest();
 
   formData.append("file", file);
+  formData.append("access_token", access_token);
 
   xhr.open("POST", './drop.php');
   uploading = true;
@@ -109,16 +144,15 @@ function startUpload() {
           $('#filelist').append(
             $('<li/>').append(
               $('<a/>').attr('href', baseHref + data.filename).text(data.filename)));
+
+          if (queue.length) startUpload();
         } else {
           var label = 'File ' + file.name + ' upload failed.';
           if (data && data.error)
             label = 'Error:' + data.error;
 
-          $('#filelist').append(
-            $('<li/>').text(label));
+          alert('Upload Error:' + label);
         }
-
-        if (queue.length) startUpload();
       } else {
         alert('Upload failed!');
       }
