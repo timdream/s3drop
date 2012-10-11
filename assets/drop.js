@@ -148,10 +148,7 @@ function startUpload() {
         } catch (e) { }
 
         if (data && data.filename) {
-          $('#filelist').append(
-            $('<li/>').append(
-              $('<a/>').attr('href', baseHref + data.filename).text(data.filename)));
-
+          addFileToList(data.filename);
           if (queue.length) startUpload();
         } else {
           var label = 'File ' + file.name + ' upload failed.';
@@ -178,13 +175,53 @@ function getList() {
         return;
       }
 
-      result.files.forEach(function (filename) {
-        $('#filelist').append(
-          $('<li/>').append(
-            $('<a/>').attr('href', baseHref + filename).text(filename)));
-      });
+      result.files.forEach(addFileToList);
     }
   );
 }
+
+function addFileToList(filename) {
+  $('#filelist').append(
+    $('<li/>')
+      .append($('<a/>').attr('href', baseHref + filename).text(filename))
+      .append(' [')
+      .append($('<a rel="delete" href="#" />')
+        .data('filename', filename)
+        .text('delete'))
+      .append(']'));
+}
+
+$('#filelist').on(
+  'click',
+  'a[rel="delete"]',
+  function (ev) {
+    ev.preventDefault();
+
+    if (!window.confirm('Are you sure you want to delete?'))
+      return;
+
+    $a = $(this);
+    $li = $a.parents('li');
+    $li.addClass('pending');
+    $.post(
+      './delete.php',
+      {
+        access_token: access_token,
+        filename: $a.data('filename')
+      },
+      function gotResult(result) {
+        if (!result || result.error) {
+          alert(result.error || 'Server Error');
+          $li.removeClass('pending');
+          return;
+
+        }
+
+        $li.remove();
+      },
+      'json'
+    );
+  }
+);
 
 })(jQuery);

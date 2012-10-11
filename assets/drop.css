@@ -54,3 +54,12 @@ body {
   text-align: left;
   white-space: nowrap;
 }
+
+#filelist li.pending {
+  opacity: 0.5;
+}
+
+#filelist a[rel="delete"]:not(:hover) {
+  color: #99f;
+  text-decoration: none;
+}
