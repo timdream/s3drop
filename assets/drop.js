@@ -57,14 +57,18 @@ var queue = [],
                                            window.location.href.lastIndexOf('/') + 1)
                + 'files/';
 
-if (!window.google_oauth2_client_id) {
+if (!disable_login && !window.google_oauth2_client_id) {
   alert('You need to supply your Google OAuth2 Client ID in config.js.');
 }
 
-GO2.init(
-  window.google_oauth2_client_id,
-  'https://www.googleapis.com/auth/userinfo.email'
-);
+if (disable_login) {
+  $login.remove();
+} else {
+  GO2.init(
+    window.google_oauth2_client_id,
+    'https://www.googleapis.com/auth/userinfo.email'
+  );
+}
 
 $login.children('a').on(
   'click',
@@ -103,7 +107,7 @@ function xhrProgressHandler(ev) {
 }
 
 function addQueue(filelist) {
-  if (!access_token) {
+  if (!disable_login && !access_token) {
     alert('You need to login first.');
     return;
   }
@@ -124,7 +128,8 @@ function startUpload() {
       xhr = new XMLHttpRequest();
 
   formData.append("file", file);
-  formData.append("access_token", access_token);
+  if (!disable_login)
+    formData.append("access_token", access_token);
 
   xhr.open("POST", './drop.php');
   uploading = true;
