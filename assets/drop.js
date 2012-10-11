@@ -84,6 +84,8 @@ $login.children('a').on(
 
       access_token = token;
       $login.remove();
+
+      getList();
     });
   }
 );
@@ -164,6 +166,25 @@ function startUpload() {
     }
   };
   xhr.send(formData);
+}
+
+function getList() {
+  $.getJSON(
+    './list.php?access_token=' + access_token,
+    function (result) {
+      if (!result || result.error) {
+        alert(result.error || 'Get file list failed.');
+
+        return;
+      }
+
+      result.files.forEach(function (filename) {
+        $('#filelist').append(
+          $('<li/>').append(
+            $('<a/>').attr('href', baseHref + filename).text(filename)));
+      });
+    }
+  );
 }
 
 })(jQuery);
