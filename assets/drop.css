@@ -7,18 +7,18 @@ body {
   top: 50%; left: 50%;
   margin: -100px 0 0 -200px; padding: 0;
   width: 400px; height: 200px;
-  background: #ddd;
-  border: 10px solid #ddd;
+  background: #cec;
+  border: 10px solid #cec;
   -moz-border-radius: 100px;
   -webkit-border-radius: 100px;
   border-radius: 100px;
   overflow: hidden;
 }
 #file_containor:hover {
-  border: 10px outset #ccc;
+  border: 10px outset #cec;
 }
 #file_containor:active, #file_containor.dragover {
-  border: 10px inset #ccc;
+  border: 10px inset #cec;
 }
 #file_containor input {
   position: absolute; top: 0; right: 0;
