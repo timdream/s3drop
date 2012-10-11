@@ -105,15 +105,17 @@ function startUpload() {
           data = JSON.parse(xhr.responseText);
         } catch (e) { }
 
-        if (data) {
+        if (data && data.filename) {
           $('#filelist').append(
             $('<li/>').append(
               $('<a/>').attr('href', baseHref + data.filename).text(data.filename)));
         } else {
+          var label = 'File ' + file.name + ' upload failed.';
+          if (data && data.error)
+            label = 'Error:' + data.error;
+
           $('#filelist').append(
-            $('<li/>').text('File ' + file.name + ' upload failed.'));
-          if (window.console)
-            window.console.log(xhr.responseText);
+            $('<li/>').text(label));
         }
 
         if (queue.length) startUpload();
