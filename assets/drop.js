@@ -196,14 +196,18 @@ function getList() {
 }
 
 function addFileToList(filename) {
-  $('#filelist').append(
-    $('<li/>')
-      .append($('<a/>').attr('href', baseHref + filename).text(filename))
-      .append(' [')
+  var $li = $('<li/>');
+  $li.append($('<a/>').attr('href', baseHref + filename).text(filename));
+
+  if (!config.disable_login) {
+    $li.append(' [')
       .append($('<a rel="delete" href="#" />')
         .data('filename', filename)
         .text('delete'))
-      .append(']'));
+      .append(']');
+  }
+
+  $('#filelist').append($li);
 }
 
 $('#filelist').on(
