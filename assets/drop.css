@@ -2,7 +2,7 @@ body {
   font: 0.92em sans-serif;
 }
 
-#file_containor {
+#file_container {
   position: absolute;
   top: 50%; left: 50%;
   margin: -100px 0 0 -200px; padding: 0;
@@ -12,13 +12,13 @@ body {
   border-radius: 100px;
   overflow: hidden;
 }
-#file_containor:hover {
+#file_container:hover {
   border: 10px outset #cec;
 }
-#file_containor:active, #file_containor.dragover {
+#file_container:active, #file_container.dragover {
   border: 10px inset #cec;
 }
-#file_containor input {
+#file_container input {
   position: absolute; top: 0; right: 0;
   font-size: 400px;
   opacity: 0;

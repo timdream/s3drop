@@ -1,246 +1,305 @@
-(function ($) {
-$(function () {
-  $('#file_containor').bind(
-    'drop',
-    function (ev) {
-      $(this).removeClass('dragover');
-      addQueue(ev.originalEvent.dataTransfer.files);
-      return false;
-    }
-  ).bind(
-    'dragover',
-    function () {
-      return false;
-    }
-  ).bind(
-    'dragenter',
-    function () {
-      $(this).addClass('dragover');
-      return false;
-    }
-  ).bind(
-    'dragleave',
-    function () {
-      $(this).removeClass('dragover');
-      return false;
-    }
-  );
+'use strict';
 
-  $(window).bind(
-    'drop',
-    function () {
-      return false;
-    }
-  ).bind(
-    'dragover',
-    function () {
-      return false;
-    }
-  );
+/* Actual front-end for Drop */
 
-  $('#files').bind(
-    'change',
-    function (ev) {
-      addQueue(this.files);
-      this.form.reset();
-    }
-  );
-});
+jQuery(function initDrop($) {
+  // Token needed to access the server.
+  // Shared by all functions.
+  var access_token;
 
-var queue = [],
-    uploading = false,
-    $status = $('#status'),
-    $login = $('#login'),
-    access_token,
-    $filelist = $('#filelist'),
-    baseHref = window.location.href.substr(0,
-                                           window.location.href.lastIndexOf('/') + 1)
-               + 'files/',
-    config;
+  // ==== Remote Auth functions
+  var Auth = {
+    init: function init(client_id) {
+      GO2.init(client_id, 'https://www.googleapis.com/auth/userinfo.email');
+    },
+    login: function login(callback) {
+      GO2.getToken(function gotToken(token) {
+        access_token = token;
+        QueueUpload.form_data.access_token = token;
 
-$.getJSON(
-  './getconfig.php',
-  function (result) {
-    if (!result || result.error) {
-      alert(result.error || 'Get config failed.');
+        if (callback)
+          callback();
+      });
+    },
+    logout: function logout(callback) {
+      // This is so easy :-/
+      access_token = null;
 
-      return;
-    }
-
-    config = result;
-
-    if (config.disable_login) {
-      $login.remove();
-    } else {
-      GO2.init(
-        config.google_oauth2_client_id,
-        'https://www.googleapis.com/auth/userinfo.email'
-      );
-    }
-  }
-);
-
-$login.children('a').on(
-  'click',
-  function (ev) {
-    ev.preventDefault();
-
-    if (access_token)
-      return;
-
-    GO2.getToken(function gotToken(token) {
-      if (!token)
-        return;
-
-      access_token = token;
-      $login.remove();
-
-      getList();
-    });
-  }
-);
-
-if (!window.FormData || !window.XMLHttpRequest || !window.JSON) {
-  $status.text('Error: Browser unsupported.');
-}
-
-function updateStatus(loaded, total) {
-  if (!uploading) $status.text('Done.');
-  else {
-    $status.text(
-      'Uploading: ' + (loaded >> 10).toString(10) + '/' + (total >> 10) + ' Kbytes (' + (loaded/total*100).toPrecision(3)  + '%)'
-      + ', ' + queue.length.toString(10) + ' file(s) remaining.'
-    );
-  }
-}
-
-function xhrProgressHandler(ev) {
-  updateStatus(ev.loaded, ev.total);
-}
-
-function addQueue(filelist) {
-  if (!config.disable_login && !access_token) {
-    alert('You need to login first.');
-    return;
-  }
-
-  if (!filelist) return;
-  $.each(
-    filelist,
-    function (i, file) {
-      if (file.size > config.max_file_size) {
-        alert('File ' + file.name + ' exceeds maximum file size.');
-        return;
-      }
-
-      queue.push(file);
-    }
-  );
-  if (!uploading) startUpload();
-}
-
-function startUpload() {
-  var formData = new FormData(),
-      file = queue.shift(),
-      xhr = new XMLHttpRequest();
-
-  formData.append("file", file);
-  if (!config.disable_login)
-    formData.append("access_token", access_token);
-
-  xhr.open("POST", './drop.php');
-  uploading = true;
-  //updateStatus(0, file.size);
-  xhr.upload.onprogress = xhrProgressHandler;
-  xhr.onreadystatechange = function xhrStateChangeHandler(ev) {
-    if (xhr.readyState == 4) {
-      uploading = false;
-      updateStatus();
-      if(xhr.status == 200) {
-        var data;
-        try {
-          data = JSON.parse(xhr.responseText);
-        } catch (e) { }
-
-        if (data && data.filename) {
-          addFileToList(data.filename);
-          if (queue.length) startUpload();
-        } else {
-          var label = 'File ' + file.name + ' upload failed.';
-          if (data && data.error)
-            label = 'Error:' + data.error;
-
-          alert('Upload Error:' + label);
-        }
-      } else {
-        alert('Upload failed!');
-      }
+      if (callback)
+        callback();
     }
   };
-  xhr.send(formData);
-}
 
-function getList() {
-  $.getJSON(
-    './list.php?access_token=' + access_token,
-    function (result) {
-      if (!result || result.error) {
-        alert(result.error || 'Get file list failed.');
+  // ==== Remote Server functions
+  // (doesn't include upload)
+  var Server = {
+    // get config
+    getConfig: function getConfig(callback) {
+      $.getJSON(
+        './getconfig.php',
+        function gotGetConfigResult(result) {
+          if (!result || result.error) {
+            alert(result.error || 'Get config failed.');
+            if (callback)
+              callback();
+
+            return;
+          }
+
+          Server.config = result;
+          if (callback)
+            callback();
+        }
+      );
+    },
+    // list files on the server
+    listFiles: function listFiles(callback) {
+      $.getJSON(
+        './list.php?access_token=' + access_token,
+        function gotListFilesResult(result) {
+          if (!result || result.error || !result.files) {
+            alert(result.error || 'Get file list failed.');
+
+            if (callback)
+              callback();
+
+            return;
+          }
+
+          if (callback)
+            callback(result.files);
+        }
+      );
+    },
+    // delete file on the server
+    deleteFile: function deleteFile(callback, filename) {
+      $.post('./delete.php', {
+          access_token: access_token,
+          filename: filename
+        },
+        function gotResult(result) {
+          if (!result || result.error) {
+            alert(result.error || 'Server Error');
+            if (callback)
+              callback(false);
+
+            return;
+          }
+
+          callback(true);
+        },
+        'json'
+      );
+    }
+  };
+
+  // ==== Front-end Controls
+  (function init() {
+    // Allow dropping file to container
+    $('#file_containor').on('drop',
+      function dropFile(evt) {
+        evt.preventDefault();
+        $(this).removeClass('dragover');
+
+        if (!Server.config.disable_login && !access_token) {
+          alert('You need to login first.');
+          return;
+        }
+
+        QueueUpload.addQueue(ev.originalEvent.dataTransfer.files);
+      }
+    ).on('dragover',
+      function dragoverFile(evt) {
+        evt.preventDefault();
+      }
+    ).on('dragenter',
+      function dragenterFile(evt) {
+        $(this).addClass('dragover');
+        evt.preventDefault();
+      }
+    ).on('dragleave',
+      function dragleaveFile(evt) {
+        $(this).removeClass('dragover');
+        evt.preventDefault();
+      }
+    );
+
+    // Prevent user from leaving page when drop
+    // a file outside of container accidentally
+    $(window).on('drop',
+      function dropFile(evt) {
+        evt.preventDefault();
+      }
+    ).on('dragover',
+      function dragoverFile(evt) {
+        evt.preventDefault();
+      }
+    );
+
+    // Allow user to select files from the control
+    $('#files').on('change',
+      function changeFiles(evt) {
+        if (!Server.config.disable_login && !access_token) {
+          alert('You need to login first.');
+
+          this.form.reset();
+          return;
+        }
+
+        QueueUpload.addQueue(this.files);
+
+        // Reset the from to clean up selected files
+        // so user may be able to select again.
+        this.form.reset();
+      }
+    );
+
+    // Textual label status
+    var $status = $('#status');
+    function updateStatus(name, loaded, total) {
+      if (!QueueUpload.isUploading()) {
+        $status.text('Done.');
+      } else {
+        $status.text(
+          'Uploading: ' + name + ', ' +
+          (loaded >> 10).toString(10) + '/' + (total >> 10) +
+          ' Kbytes (' + (loaded / total * 100).toPrecision(3) + '%)' +
+          ', ' + QueueUpload.getQueueLength().toString(10) +
+          ' file(s) remaining.');
+      }
+    }
+    if (!QueueUpload.isSupported || !window.JSON) {
+      $status.text('Error: Browser unsupported.');
+    }
+
+    // Login label
+    var $login = $('#login');
+    $login.children('a').on('click',
+      function clickLogin(evt) {
+        evt.preventDefault();
+
+        if (access_token)
+          return;
+
+        Auth.login(function loginResult() {
+          if (!access_token)
+            return;
+
+          $login.remove();
+          updateFilelist();
+        });
+      }
+    );
+
+    // List of files and base href of the link to file
+    var $filelist = $('#filelist'),
+      baseHref = window.location.href.substr(0,
+                                             window.location.href
+                                               .lastIndexOf('/') + 1);
+
+    // Delete file when user click on a delete link
+    $filelist.on('click', 'a[rel="delete"]',
+      function clickDeleteFile(evt) {
+        evt.preventDefault();
+
+        if (!window.confirm('Are you sure you want to delete?'))
+          return;
+
+        $a = $(this);
+        $li = $a.parents('li');
+        Server.deleteFile(function fileDeleteResult(result) {
+          if (result) {
+            $li.remove();
+          } else {
+            $li.removeClass('pending');
+          }
+        }, $a.data('filename'));
+
+        $li.addClass('pending');
+      }
+    );
+    function addFileToList(filename) {
+      var $li = $('<li/>');
+      $li.append($('<a/>').attr('href', baseHref + 'files/' + filename)
+                          .text(filename));
+
+      if (!Server.config.disable_login) {
+        $li.append(' [')
+          .append($('<a rel="delete" href="#" />')
+            .data('filename', filename)
+            .text('delete'))
+          .append(']');
+      }
+
+      $filelist.append($li);
+    }
+    function updateFilelist() {
+      Server.listFiles(function listFilesResult(files) {
+        if (!files)
+          return;
+
+        files.forEach(addFileToList);
+      });
+    }
+
+    QueueUpload.post_name = 'file';
+    QueueUpload.url = './drop.php';
+
+    // We don't need this
+    // QueueUpload.onuploadstart =
+
+    // When there is a progress we will update the progress
+    QueueUpload.onuploadprogress = function uploadprogress(file,
+                                                           xhr,
+                                                           loaded, total) {
+      updateStatus(file.name, loaded, total);
+    };
+
+    // When upload is completed we'll process the result from server
+    // and decide if we want to continue the upload.
+    QueueUpload.onuploadcomplete = function uploadcomplete(file, xhr) {
+      if (xhr.status !== 200) {
+        alert('Upload failed!');
+        return false;
+      }
+
+      updateStatus();
+
+      var data;
+      try {
+        data = JSON.parse(xhr.responseText);
+      } catch (e) { }
+
+      if (!data) {
+        alert('Server error!');
+        return false;
+      }
+
+      if (data.error || !data.filename) {
+        alert('Upload Error: ' + (data.error || 'Unknown error'));
+        return false;
+      }
+
+      addFileToList(data.filename);
+
+      return true;
+    };
+
+    Server.getConfig(function gotConfig() {
+      if (!Server.config)
+        return;
+
+      QueueUpload.max_file_size = Server.config.max_file_size;
+
+      // Login not required, remove login label
+      if (Server.config.disable_login) {
+        $login.remove();
 
         return;
       }
 
-      result.files.forEach(addFileToList);
-    }
-  );
-}
-
-function addFileToList(filename) {
-  var $li = $('<li/>');
-  $li.append($('<a/>').attr('href', baseHref + filename).text(filename));
-
-  if (!config.disable_login) {
-    $li.append(' [')
-      .append($('<a rel="delete" href="#" />')
-        .data('filename', filename)
-        .text('delete'))
-      .append(']');
-  }
-
-  $('#filelist').append($li);
-}
-
-$('#filelist').on(
-  'click',
-  'a[rel="delete"]',
-  function (ev) {
-    ev.preventDefault();
-
-    if (!window.confirm('Are you sure you want to delete?'))
-      return;
-
-    $a = $(this);
-    $li = $a.parents('li');
-    $li.addClass('pending');
-    $.post(
-      './delete.php',
-      {
-        access_token: access_token,
-        filename: $a.data('filename')
-      },
-      function gotResult(result) {
-        if (!result || result.error) {
-          alert(result.error || 'Server Error');
-          $li.removeClass('pending');
-          return;
-
-        }
-
-        $li.remove();
-      },
-      'json'
-    );
-  }
-);
-
-})(jQuery);
+      // Initialize Auth
+      Auth.init(Server.config.google_oauth2_client_id);
+    });
+  })();
+});
