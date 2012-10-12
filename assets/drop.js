@@ -289,6 +289,8 @@ jQuery(function initDrop($) {
       if (!Server.config)
         return;
 
+      $(document.body).removeClass('uninit');
+
       QueueUpload.max_file_size = Server.config.max_file_size;
 
       // Login not required, remove login label

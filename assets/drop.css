@@ -2,6 +2,16 @@ body {
   font: 0.92em sans-serif;
 }
 
+body > * {
+  -webkit-transition: visibility 0.3s ease, opacity 0.3s ease;
+  transition: visibility 0.3s ease, opacity 0.3s ease;
+}
+
+body.uninit > * {
+  visibility: hidden;
+  opacity: 0;
+}
+
 #file_container {
   position: absolute;
   top: 50%; left: 50%;
