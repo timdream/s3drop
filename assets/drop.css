@@ -9,8 +9,6 @@ body {
   width: 400px; height: 200px;
   background: #cec;
   border: 10px solid #cec;
-  -moz-border-radius: 100px;
-  -webkit-border-radius: 100px;
   border-radius: 100px;
   overflow: hidden;
 }
