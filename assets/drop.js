@@ -55,20 +55,30 @@ var queue = [],
     $filelist = $('#filelist'),
     baseHref = window.location.href.substr(0,
                                            window.location.href.lastIndexOf('/') + 1)
-               + 'files/';
+               + 'files/',
+    config;
 
-if (!disable_login && !window.google_oauth2_client_id) {
-  alert('You need to supply your Google OAuth2 Client ID in config.js.');
-}
+$.getJSON(
+  './getconfig.php',
+  function (result) {
+    if (!result || result.error) {
+      alert(result.error || 'Get config failed.');
 
-if (disable_login) {
-  $login.remove();
-} else {
-  GO2.init(
-    window.google_oauth2_client_id,
-    'https://www.googleapis.com/auth/userinfo.email'
-  );
-}
+      return;
+    }
+
+    config = result;
+
+    if (config.disable_login) {
+      $login.remove();
+    } else {
+      GO2.init(
+        config.google_oauth2_client_id,
+        'https://www.googleapis.com/auth/userinfo.email'
+      );
+    }
+  }
+);
 
 $login.children('a').on(
   'click',
@@ -109,7 +119,7 @@ function xhrProgressHandler(ev) {
 }
 
 function addQueue(filelist) {
-  if (!disable_login && !access_token) {
+  if (!config.disable_login && !access_token) {
     alert('You need to login first.');
     return;
   }
@@ -118,6 +128,11 @@ function addQueue(filelist) {
   $.each(
     filelist,
     function (i, file) {
+      if (file.size > config.max_file_size) {
+        alert('File ' + file.name + ' exceeds maximum file size.');
+        return;
+      }
+
       queue.push(file);
     }
   );
@@ -130,7 +145,7 @@ function startUpload() {
       xhr = new XMLHttpRequest();
 
   formData.append("file", file);
-  if (!disable_login)
+  if (!config.disable_login)
     formData.append("access_token", access_token);
 
   xhr.open("POST", './drop.php');
