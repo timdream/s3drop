@@ -1,5 +1,10 @@
 body {
-  font: 0.92em sans-serif;
+  font: 14px sans-serif;
+  line-height: 16px;
+
+  border: none;
+  padding: 0;
+  margin: 0;
 }
 
 body > * {
@@ -8,6 +13,54 @@ body > * {
 }
 
 body.uninit > * {
+  visibility: hidden;
+  opacity: 0;
+}
+
+header {
+  background-color: #2d2d2d;
+  border-bottom: 2px solid #000;
+  height: 32px;
+}
+
+header a {
+  color: #fff;
+}
+
+header a:not(:hover) {
+  text-decoration: none;
+}
+
+header > p {
+  position: absolute;
+  width: 100%;
+  height: 32px;
+
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+
+  margin: 0;
+  padding: 8px;
+
+  white-space: nowrap;
+  text-align: right;
+
+  color: #fff;
+
+  -webkit-transition: visibility 0.3s ease, opacity 0.3s ease;
+  transition: visibility 0.3s ease, opacity 0.3s ease;
+}
+
+#login {
+  font-weight: bold;
+}
+
+body:not(.auth_needed) #login {
+  visibility: hidden;
+  opacity: 0;
+}
+
+#login_status:empty {
   visibility: hidden;
   opacity: 0;
 }
@@ -33,24 +86,6 @@ body.uninit > * {
   font-size: 400px;
   opacity: 0;
   cursor: pointer; /* Won't work in Fx 3.6 */
-}
-#login {
-  position: absolute;
-  top: 50%; left: 50%;
-  margin: 140px 0 0 -400px;
-  width: 800px; height: auto;
-  overflow: visible;
-  text-align: center;
-  white-space: nowrap;
-  font-weight: bold;
-
-  -webkit-transition: visibility 0.3s ease, opacity 0.3s ease;
-  transition: visibility 0.3s ease, opacity 0.3s ease;
-}
-
-body:not(.auth_needed) #login {
-  visibility: hidden;
-  opacity: 0;
 }
 
 #status {

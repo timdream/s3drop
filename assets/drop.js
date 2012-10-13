@@ -143,6 +143,18 @@ jQuery(function initDrop($) {
       GO2.login(false, false);
     });
 
+    var $login_status = $('#login_status');
+    function updateLoginStatus() {
+      var url = 'https://www.googleapis.com/oauth2/v1/userinfo?access_token=' +
+        access_token;
+      $.getJSON(url, function gotUserInfo(result) {
+        if (!result || !result.email)
+          return;
+
+        $login_status.text('You are logged in as ' + result.email + '.');
+      });
+    };
+
     // List of files and base href of the link to file
     var $filelist = $('#filelist'),
       baseHref = window.location.href.substr(0,
@@ -258,6 +270,7 @@ jQuery(function initDrop($) {
         QueueUpload.form_data.access_token = token;
 
         $body.removeClass('auth_needed');
+        updateLoginStatus();
         updateFilelist();
       };
       GO2.onlogout = function loggedOut() {
@@ -266,6 +279,7 @@ jQuery(function initDrop($) {
 
         $body.addClass('auth_needed');
         $filelist.empty();
+        $login_status.empty();
       };
       GO2.init({
         client_id: Server.config.google_oauth2_client_id,

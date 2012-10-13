@@ -6,13 +6,17 @@
   <link rel="stylesheet" type="text/css" href="./assets/drop.css">
 </head>
 <body class="uninit">
-<form action="#" method="get">
-  <p id="file_container"><input type="file" id="files" multiple /></p>
-  <p id="login"><a href="#">Log in</a></p>
+  <header>
+    <p id="login"><a href="#">Log in</a></p>
+    <p id="login_status"></p>
+  </header>
+
+  <form action="#" method="get">
+    <p id="file_container"><input type="file" id="files" multiple /></p>
+  </form>
   <p id="status">Drop files on above button, or click to select files.
 You may select more files while uploading.</p>
   <ul id="filelist"></ul>
-</form>
 <script defer type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
 <script defer type="text/javascript" src="./assets/go2/src/google-oauth2.js"></script>
 <script defer type="text/javascript" src="./assets/queueupload.js"></script>
