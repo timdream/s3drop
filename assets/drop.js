@@ -12,41 +12,36 @@ jQuery(function initDrop($) {
   var Server = {
     // get config
     getConfig: function getConfig(callback) {
-      $.getJSON(
-        './getconfig.php',
-        function gotGetConfigResult(result) {
-          if (!result || result.error) {
-            alert(result.error || 'Get config failed.');
-            if (callback)
-              callback();
-
-            return;
-          }
-
-          Server.config = result;
+      $.getJSON('./getconfig.php', function gotGetConfigResult(result) {
+        if (!result || result.error) {
+          alert(result.error || 'Get config failed.');
           if (callback)
             callback();
+
+          return;
         }
-      );
+
+        Server.config = result;
+        if (callback)
+          callback();
+      });
     },
     // list files on the server
     listFiles: function listFiles(callback) {
-      $.getJSON(
-        './list.php?access_token=' + access_token,
-        function gotListFilesResult(result) {
-          if (!result || result.error || !result.files) {
-            alert(result.error || 'Get file list failed.');
-
-            if (callback)
-              callback();
-
-            return;
-          }
+      var url = './list.php?access_token=' + access_token;
+      $.getJSON(url, function gotListFilesResult(result) {
+        if (!result || result.error || !result.files) {
+          alert(result.error || 'Get file list failed.');
 
           if (callback)
-            callback(result.files);
+            callback();
+
+          return;
         }
-      );
+
+        if (callback)
+          callback(result.files);
+      });
     },
     // delete file on the server
     deleteFile: function deleteFile(callback, filename) {
@@ -75,63 +70,49 @@ jQuery(function initDrop($) {
     var $body = $(document.body);
 
     // Allow dropping file to container
-    $('#file_containor').on('drop',
-      function dropFile(evt) {
-        evt.preventDefault();
-        $(this).removeClass('dragover');
+    $('#file_containor').on('drop', function dropFile(evt) {
+      evt.preventDefault();
+      $(this).removeClass('dragover');
 
-        if (!Server.config.disable_login && !access_token) {
-          alert('You need to login first.');
-          return;
-        }
+      if (!Server.config.disable_login && !access_token) {
+        alert('You need to login first.');
+        return;
+      }
 
-        QueueUpload.addQueue(ev.originalEvent.dataTransfer.files);
-      }
-    ).on('dragover',
-      function dragoverFile(evt) {
-        evt.preventDefault();
-      }
-    ).on('dragenter',
-      function dragenterFile(evt) {
-        $(this).addClass('dragover');
-        evt.preventDefault();
-      }
-    ).on('dragleave',
-      function dragleaveFile(evt) {
-        $(this).removeClass('dragover');
-        evt.preventDefault();
-      }
-    );
+      QueueUpload.addQueue(ev.originalEvent.dataTransfer.files);
+    }).on('dragover', function dragoverFile(evt) {
+      evt.preventDefault();
+    }).on('dragenter', function dragenterFile(evt) {
+      $(this).addClass('dragover');
+      evt.preventDefault();
+    }).on('dragleave', function dragleaveFile(evt) {
+      $(this).removeClass('dragover');
+      evt.preventDefault();
+    });
 
     // Prevent user from leaving page when drop
     // a file outside of container accidentally
-    $(window).on('drop',
-      function dropFile(evt) {
+    $(window).on('drop', function dropFile(evt) {
         evt.preventDefault();
-      }
-    ).on('dragover',
-      function dragoverFile(evt) {
+    }).on('dragover', function dragoverFile(evt) {
         evt.preventDefault();
-      }
-    );
+    });
 
     // Allow user to select files from the control
-    $('#files').on('change',
-      function changeFiles(evt) {
-        if (!Server.config.disable_login && !access_token) {
-          alert('You need to login first.');
+    $('#files').on('change', function changeFiles(evt) {
+      if (!Server.config.disable_login && !access_token) {
+        alert('You need to login first.');
 
-          this.form.reset();
-          return;
-        }
-
-        QueueUpload.addQueue(this.files);
-
-        // Reset the from to clean up selected files
-        // so user may be able to select again.
         this.form.reset();
+        return;
       }
-    );
+
+      QueueUpload.addQueue(this.files);
+
+      // Reset the from to clean up selected files
+      // so user may be able to select again.
+      this.form.reset();
+    });
 
     // Textual label status
     var $status = $('#status');
@@ -153,16 +134,14 @@ jQuery(function initDrop($) {
 
     // Login label
     var $login = $('#login');
-    $login.children('a').on('click',
-      function clickLogin(evt) {
-        evt.preventDefault();
+    $login.children('a').on('click', function clickLogin(evt) {
+      evt.preventDefault();
 
-        if (access_token)
-          return;
+      if (access_token)
+        return;
 
-        GO2.login(false, false);
-      }
-    );
+      GO2.login(false, false);
+    });
 
     // List of files and base href of the link to file
     var $filelist = $('#filelist'),
@@ -171,26 +150,24 @@ jQuery(function initDrop($) {
                                                .lastIndexOf('/') + 1);
 
     // Delete file when user click on a delete link
-    $filelist.on('click', 'a[rel="delete"]',
-      function clickDeleteFile(evt) {
-        evt.preventDefault();
+    $filelist.on('click', 'a[rel="delete"]', function clickDeleteFile(evt) {
+      evt.preventDefault();
 
-        if (!window.confirm('Are you sure you want to delete?'))
-          return;
+      if (!window.confirm('Are you sure you want to delete?'))
+        return;
 
-        $a = $(this);
-        $li = $a.parents('li');
-        Server.deleteFile(function fileDeleteResult(result) {
-          if (result) {
-            $li.remove();
-          } else {
-            $li.removeClass('pending');
-          }
-        }, $a.data('filename'));
+      $a = $(this);
+      $li = $a.parents('li');
+      Server.deleteFile(function fileDeleteResult(result) {
+        if (result) {
+          $li.remove();
+        } else {
+          $li.removeClass('pending');
+        }
+      }, $a.data('filename'));
 
-        $li.addClass('pending');
-      }
-    );
+      $li.addClass('pending');
+    });
     function addFileToList(filename) {
       var $li = $('<li/>');
       $li.append($('<a/>').attr('href', baseHref + 'files/' + filename)
