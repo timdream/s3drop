@@ -43,7 +43,16 @@ body.uninit > * {
   text-align: center;
   white-space: nowrap;
   font-weight: bold;
+
+  -webkit-transition: visibility 0.3s ease, opacity 0.3s ease;
+  transition: visibility 0.3s ease, opacity 0.3s ease;
 }
+
+body:not(.auth_needed) #login {
+  visibility: hidden;
+  opacity: 0;
+}
+
 #status {
   position: absolute;
   top: 50%; left: 50%;

@@ -9,24 +9,25 @@ jQuery(function initDrop($) {
 
   // ==== Remote Auth functions
   var Auth = {
-    init: function init(client_id) {
-      GO2.init(client_id, 'https://www.googleapis.com/auth/userinfo.email');
-    },
-    login: function login(callback) {
-      GO2.getToken(function gotToken(token) {
-        access_token = token;
-        QueueUpload.form_data.access_token = token;
+    init: function init(client_id, loginCallback, logoutCallback) {
+      // Attach callbacks
+      GO2.onlogin = loginCallback;
+      GO2.onlogout = logoutCallback;
 
-        if (callback)
-          callback();
+      // Init
+      GO2.init({
+        client_id: client_id,
+        scope: 'https://www.googleapis.com/auth/userinfo.email'
       });
-    },
-    logout: function logout(callback) {
-      // This is so easy :-/
-      access_token = null;
 
-      if (callback)
-        callback();
+      // Attempt to login silently.
+      GO2.login(false, true);
+    },
+    login: function login() {
+      GO2.login(false, false);
+    },
+    logout: function logout() {
+      GO2.logout();
     }
   };
 
@@ -95,6 +96,8 @@ jQuery(function initDrop($) {
 
   // ==== Front-end Controls
   (function init() {
+    var $body = $(document.body);
+
     // Allow dropping file to container
     $('#file_containor').on('drop',
       function dropFile(evt) {
@@ -181,13 +184,7 @@ jQuery(function initDrop($) {
         if (access_token)
           return;
 
-        Auth.login(function loginResult() {
-          if (!access_token)
-            return;
-
-          $login.remove();
-          updateFilelist();
-        });
+        Auth.login();
       }
     );
 
@@ -289,7 +286,7 @@ jQuery(function initDrop($) {
       if (!Server.config)
         return;
 
-      $(document.body).removeClass('uninit');
+      $body.removeClass('uninit');
 
       QueueUpload.max_file_size = Server.config.max_file_size;
 
@@ -300,8 +297,26 @@ jQuery(function initDrop($) {
         return;
       }
 
+      $body.addClass('auth_needed');
+
       // Initialize Auth
-      Auth.init(Server.config.google_oauth2_client_id);
+      Auth.init(
+        Server.config.google_oauth2_client_id,
+        function loggedIn(token) {
+          access_token = token;
+          QueueUpload.form_data.access_token = token;
+
+          $body.removeClass('auth_needed');
+          updateFilelist();
+        },
+        function loggedOut() {
+          access_token = undefined;
+          QueueUpload.form_data.access_token = undefined;
+
+          $body.addClass('auth_needed');
+          $filelist.empty();
+        }
+      );
     });
   })();
 });
