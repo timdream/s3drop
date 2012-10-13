@@ -93,9 +93,9 @@ jQuery(function initDrop($) {
     // Prevent user from leaving page when drop
     // a file outside of container accidentally
     $(window).on('drop', function dropFile(evt) {
-        evt.preventDefault();
+      evt.preventDefault();
     }).on('dragover', function dragoverFile(evt) {
-        evt.preventDefault();
+      evt.preventDefault();
     });
 
     // Allow user to select files from the control
@@ -156,9 +156,9 @@ jQuery(function initDrop($) {
     };
 
     // List of files and base href of the link to file
-    var $filelist = $('#filelist'),
-      baseHref = window.location.href.substr(0,
-                                             window.location.href
+    var $filelist = $('#filelist');
+    var baseHref = window.location.href.substr(0,
+                                               window.location.href
                                                .lastIndexOf('/') + 1);
 
     // Delete file when user click on a delete link
@@ -168,8 +168,8 @@ jQuery(function initDrop($) {
       if (!window.confirm('Are you sure you want to delete?'))
         return;
 
-      $a = $(this);
-      $li = $a.parents('li');
+      var $a = $(this);
+      var $li = $a.parents('li');
       Server.deleteFile(function fileDeleteResult(result) {
         if (result) {
           $li.remove();
