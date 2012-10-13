@@ -7,30 +7,6 @@ jQuery(function initDrop($) {
   // Shared by all functions.
   var access_token;
 
-  // ==== Remote Auth functions
-  var Auth = {
-    init: function init(client_id, loginCallback, logoutCallback) {
-      // Attach callbacks
-      GO2.onlogin = loginCallback;
-      GO2.onlogout = logoutCallback;
-
-      // Init
-      GO2.init({
-        client_id: client_id,
-        scope: 'https://www.googleapis.com/auth/userinfo.email'
-      });
-
-      // Attempt to login silently.
-      GO2.login(false, true);
-    },
-    login: function login() {
-      GO2.login(false, false);
-    },
-    logout: function logout() {
-      GO2.logout();
-    }
-  };
-
   // ==== Remote Server functions
   // (doesn't include upload)
   var Server = {
@@ -184,7 +160,7 @@ jQuery(function initDrop($) {
         if (access_token)
           return;
 
-        Auth.login();
+        GO2.login(false, false);
       }
     );
 
@@ -299,24 +275,28 @@ jQuery(function initDrop($) {
 
       $body.addClass('auth_needed');
 
-      // Initialize Auth
-      Auth.init(
-        Server.config.google_oauth2_client_id,
-        function loggedIn(token) {
-          access_token = token;
-          QueueUpload.form_data.access_token = token;
+      // Initialize GO2
+      GO2.onlogin = function loggedIn(token) {
+        access_token = token;
+        QueueUpload.form_data.access_token = token;
 
-          $body.removeClass('auth_needed');
-          updateFilelist();
-        },
-        function loggedOut() {
-          access_token = undefined;
-          QueueUpload.form_data.access_token = undefined;
+        $body.removeClass('auth_needed');
+        updateFilelist();
+      };
+      GO2.onlogout = function loggedOut() {
+        access_token = undefined;
+        QueueUpload.form_data.access_token = undefined;
 
-          $body.addClass('auth_needed');
-          $filelist.empty();
-        }
-      );
+        $body.addClass('auth_needed');
+        $filelist.empty();
+      };
+      GO2.init({
+        client_id: Server.config.google_oauth2_client_id,
+        scope: 'https://www.googleapis.com/auth/userinfo.email'
+      });
+
+      // Attempt to login silently.
+      GO2.login(false, true);
     });
   })();
 });
