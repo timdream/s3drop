@@ -3,10 +3,6 @@
 /* Actual front-end for Drop */
 
 jQuery(function initDrop($) {
-  // Token needed to access the server.
-  // Shared by all functions.
-  var access_token;
-
   // ==== Remote Server functions
   // (doesn't include upload)
   var Server = {
@@ -28,7 +24,7 @@ jQuery(function initDrop($) {
     },
     // list files on the server
     listFiles: function listFiles(callback) {
-      var url = './list.php?access_token=' + access_token;
+      var url = './list.php?access_token=' + GO2.getAccessToken();
       $.getJSON(url, function gotListFilesResult(result) {
         if (!result || result.error || !result.files) {
           alert(result.error || 'Get file list failed.');
@@ -46,7 +42,7 @@ jQuery(function initDrop($) {
     // delete file on the server
     deleteFile: function deleteFile(callback, filename) {
       $.post('./delete.php', {
-          access_token: access_token,
+          access_token: GO2.getAccessToken(),
           filename: filename
         },
         function gotResult(result) {
@@ -74,7 +70,7 @@ jQuery(function initDrop($) {
       evt.preventDefault();
       $(this).removeClass('dragover');
 
-      if (!Server.config.disable_login && !access_token) {
+      if (!Server.config.disable_login && !GO2.getAccessToken()) {
         alert('You need to login first.');
         return;
       }
@@ -100,7 +96,7 @@ jQuery(function initDrop($) {
 
     // Allow user to select files from the control
     $('#files').on('change', function changeFiles(evt) {
-      if (!Server.config.disable_login && !access_token) {
+      if (!Server.config.disable_login && !GO2.getAccessToken()) {
         alert('You need to login first.');
 
         this.form.reset();
@@ -137,7 +133,7 @@ jQuery(function initDrop($) {
     $login.children('a').on('click', function clickLogin(evt) {
       evt.preventDefault();
 
-      if (access_token)
+      if (GO2.getAccessToken())
         return;
 
       GO2.login(false, false);
@@ -146,7 +142,7 @@ jQuery(function initDrop($) {
     var $login_status = $('#login_status');
     function updateLoginStatus() {
       var url = 'https://www.googleapis.com/oauth2/v1/userinfo?access_token=' +
-        access_token;
+        GO2.getAccessToken();
       $.getJSON(url, function gotUserInfo(result) {
         if (!result || !result.email)
           return;
@@ -266,7 +262,6 @@ jQuery(function initDrop($) {
 
       // Initialize GO2
       GO2.onlogin = function loggedIn(token) {
-        access_token = token;
         QueueUpload.form_data.access_token = token;
 
         $body.removeClass('auth_needed');
@@ -274,7 +269,6 @@ jQuery(function initDrop($) {
         updateFilelist();
       };
       GO2.onlogout = function loggedOut() {
-        access_token = undefined;
         QueueUpload.form_data.access_token = undefined;
 
         $body.addClass('auth_needed');
