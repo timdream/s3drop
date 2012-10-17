@@ -8,7 +8,7 @@ jQuery(function initDrop($) {
   var Server = {
     // get config
     getConfig: function getConfig(callback) {
-      $.getJSON('./getconfig.php', function gotGetConfigResult(result) {
+      $.getJSON('./api/getconfig.php', function gotGetConfigResult(result) {
         if (!result || result.error) {
           alert(result.error || 'Get config failed.');
           if (callback)
@@ -24,7 +24,7 @@ jQuery(function initDrop($) {
     },
     // list files on the server
     listFiles: function listFiles(callback) {
-      var url = './list.php?access_token=' + GO2.getAccessToken();
+      var url = './api/list.php?access_token=' + GO2.getAccessToken();
       $.getJSON(url, function gotListFilesResult(result) {
         if (!result || result.error || !result.files) {
           alert(result.error || 'Get file list failed.');
@@ -41,7 +41,7 @@ jQuery(function initDrop($) {
     },
     // delete file on the server
     deleteFile: function deleteFile(callback, filename) {
-      $.post('./delete.php', {
+      $.post('./api/delete.php', {
           access_token: GO2.getAccessToken(),
           filename: filename
         },
@@ -201,7 +201,7 @@ jQuery(function initDrop($) {
     }
 
     QueueUpload.post_name = 'file';
-    QueueUpload.url = './drop.php';
+    QueueUpload.url = './api/drop.php';
 
     // We don't need this
     // QueueUpload.onuploadstart =
