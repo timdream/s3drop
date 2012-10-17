@@ -9,6 +9,6 @@ function filter_dot_files($filename) {
   return (substr($filename, 0, 1) !== '.');
 }
 
-$files = array_values(array_filter(scandir('../files/'), 'filter_dot_files'));
+$files = array_values(array_filter(scandir($dir), 'filter_dot_files'));
 
 print json_encode(array('files' => $files));

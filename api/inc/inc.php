@@ -2,6 +2,9 @@
 
 require('./inc/config.inc.php');
 
+# Path to ./file/ dir relative to ./api/ dir.
+$dir = '../files/';
+
 function errorhandler($errno = null,
                       $errstr = 'Unknown Error.',
                       $errfile = null, $errline = null, $errcontext = null) {
