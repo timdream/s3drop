@@ -1,3 +1,8 @@
+html {
+  min-height: 100%;
+  background: linear-gradient(#b4bcbf, #fff) no-repeat;
+}
+
 body {
   font: 14px sans-serif;
   line-height: 16px;
@@ -5,6 +10,8 @@ body {
   border: none;
   padding: 0;
   margin: 0;
+
+  color: #333;
 }
 
 body > * {
@@ -65,21 +72,68 @@ body:not(.auth_needed) #login {
   opacity: 0;
 }
 
+/*
+<i> cloud, design by daneden
+
+http://dabblet.com/gist/2945570
+https://gist.github.com/2945570
+*/
+
+.cloud {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: -75px -225px;
+
+  display: block;
+  background-color: #fff;
+  width: 450px;
+  height: 150px;
+  border-radius: 150px;
+  box-shadow:
+    inset 0 -10px rgba(255,255,255,.6),
+    0 20px 20px rgba(0,0,0,.1),
+    inset 0 -20px 20px rgba(0,100,160,.1);
+}
+
+.cloud:before, .cloud:after {
+  content:'';
+  position: absolute;
+  background-color: #fff;
+  width: 140px;
+  height: 140px;
+  border-radius: 100%;
+  top: -60px;
+  left: 70px;
+  box-shadow: 0 -20px 20px rgba(0,0,0,.05);
+}
+
+.cloud:after {
+  width: 230px;
+  height: 230px;
+  left: auto;
+  right: 70px;
+  top: -100px
+}
+
+.cloud:hover {
+  box-shadow:
+    inset 0 -10px rgba(255,255,255,.6),
+    0 20px 40px rgba(255,255,255,.8),
+    inset 0 -20px 20px rgba(0,100,160,.1);
+}
+.cloud:hover:before, .cloud:hover:after {
+  box-shadow: 0 -20px 40px rgba(255,255,255,.8);
+}
+
 #file_container {
   position: absolute;
-  top: 50%; left: 50%;
-  margin: -100px 0 0 -200px; padding: 0;
-  width: 400px; height: 200px;
-  background: #cec;
-  border: 10px solid #cec;
-  border-radius: 100px;
+  top: -100%; left: 0;
+  margin: 0; padding: 0;
+  width: 100%; height: 200%;
   overflow: hidden;
-}
-#file_container:hover {
-  border: 10px outset #cec;
-}
-#file_container:active, #file_container.dragover {
-  border: 10px inset #cec;
+
+  z-index: 10;
 }
 #file_container input {
   position: absolute; top: 0; right: 0;
@@ -91,16 +145,18 @@ body:not(.auth_needed) #login {
 #status {
   position: absolute;
   top: 50%; left: 50%;
-  margin: 180px 0 0 -400px;
+  margin: 150px 0 0 -400px;
   width: 800px; height: auto;
   overflow: visible;
   text-align: center;
   white-space: nowrap;
+
+  color: #666;
 }
 #filelist {
   position: absolute;
   top: 50%; left: 50%;
-  margin: 240px 0 0 -200px;
+  margin: 200px 0 0 -200px;
   width: 400px; height: auto;
   overflow: visible;
   text-align: left;
