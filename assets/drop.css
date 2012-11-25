@@ -164,7 +164,7 @@ https://gist.github.com/2945570
 #filelist {
   position: absolute;
   top: 50%; left: 50%;
-  margin: 200px 0 0 -200px;
+  margin: 200px 0 20px -200px;
   width: 400px; height: auto;
   overflow: visible;
   text-align: left;
