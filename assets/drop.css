@@ -166,11 +166,12 @@ body.dragover .cloud:before, body.dragover .cloud:after {
 #filelist {
   position: absolute;
   top: 50%; left: 50%;
-  margin: 200px 0 20px -200px;
+  margin: 200px 0 0 -200px;
   width: 400px; height: auto;
   overflow: visible;
   text-align: left;
   white-space: nowrap;
+  padding-bottom: 20px;
 }
 
 #filelist li.pending {
