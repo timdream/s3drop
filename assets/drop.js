@@ -75,7 +75,7 @@ jQuery(function initDrop($) {
         return;
       }
 
-      QueueUpload.addQueue(ev.originalEvent.dataTransfer.files);
+      QueueUpload.addQueue(evt.originalEvent.dataTransfer.files);
     }).on('dragover', function dragoverFile(evt) {
       evt.preventDefault();
     }).on('dragenter', function dragenterFile(evt) {
