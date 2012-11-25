@@ -66,9 +66,9 @@ jQuery(function initDrop($) {
     var $body = $(document.body);
 
     // Allow dropping file to container
-    $('#file_containor').on('drop', function dropFile(evt) {
+    $('#file_container').on('drop', function dropFile(evt) {
       evt.preventDefault();
-      $(this).removeClass('dragover');
+      $body.removeClass('dragover');
 
       if (!Server.config.disable_login && !GO2.getAccessToken()) {
         alert('You need to login first.');
@@ -79,10 +79,10 @@ jQuery(function initDrop($) {
     }).on('dragover', function dragoverFile(evt) {
       evt.preventDefault();
     }).on('dragenter', function dragenterFile(evt) {
-      $(this).addClass('dragover');
+      $body.addClass('dragover');
       evt.preventDefault();
     }).on('dragleave', function dragleaveFile(evt) {
-      $(this).removeClass('dragover');
+      $body.removeClass('dragover');
       evt.preventDefault();
     });
 
