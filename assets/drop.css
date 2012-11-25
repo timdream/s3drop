@@ -96,9 +96,46 @@ https://gist.github.com/2945570
     0 20px 20px rgba(0,0,0,.1),
     inset 0 -20px 20px rgba(0,100,160,.1);
 
-  transition: box-shadow 0.5s ease;
+  transition: box-shadow 0.5s ease, background-color 0.5s ease;
   -webkit-transition: none; /* webkit doesn't support
   transition of :before and :after */
+}
+
+@keyframes dramaticEntry {
+  0% {
+    opacity: 0;
+    transform: translateY(-2000px); }
+
+  60% {
+    opacity: 1;
+    transform: translateY(30px) }
+
+  80% {
+    transform: translateY(-10px) }
+
+  100% {
+    transform: translateY(0); }
+}
+
+@-webkit-keyframes dramaticEntry {
+  0% {
+    opacity: 0;
+    -webkit-transform: translateY(-2000px); }
+
+  60% {
+    opacity: 1;
+    -webkit-transform: translateY(30px) }
+
+  80% {
+    -webkit-transform: translateY(-10px) }
+
+  100% {
+    -webkit-transform: translateY(0); }
+}
+
+body:not(.uninit) .cloud {
+  animation: dramaticEntry 1s;
+  -webkit-animation: dramaticEntry 1s;
 }
 
 .cloud:before, .cloud:after {
@@ -112,7 +149,7 @@ https://gist.github.com/2945570
   left: 70px;
   box-shadow: 0 -20px 20px rgba(0,0,0,.05);
 
-  transition: box-shadow 0.5s ease;
+  transition: box-shadow 0.5s ease, background-color 0.5s ease;
   -webkit-transition: none;
 }
 
@@ -120,12 +157,13 @@ https://gist.github.com/2945570
   width: 230px;
   height: 230px;
   left: auto;
-  right: 70px;
-  top: -100px
+  right: 60px;
+  top: -110px
 }
 
 .cloud:hover,
 body.dragover .cloud {
+  background-color: #ffe;
   box-shadow:
     inset 0 -10px rgba(255,255,255,.6),
     0 10px 30px 10px rgba(255,255,192,.8),
@@ -133,6 +171,7 @@ body.dragover .cloud {
 }
 .cloud:hover:before, .cloud:hover:after,
 body.dragover .cloud:before, body.dragover .cloud:after {
+  background-color: #ffe;
   box-shadow: 0 -20px 20px rgba(255,255,192,.8);
 }
 
