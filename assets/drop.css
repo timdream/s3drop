@@ -138,9 +138,9 @@ body.dragover .cloud:before, body.dragover .cloud:after {
 
 #file_container {
   position: absolute;
-  top: -100%; left: 0;
+  top: -80%; left: -10%;
   margin: 0; padding: 0;
-  width: 100%; height: 200%;
+  width: 120%; height: 200%;
   overflow: hidden;
 
   z-index: 10;
