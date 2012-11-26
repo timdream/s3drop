@@ -140,12 +140,13 @@ https://gist.github.com/2945570
     width: 230px; height: 230px;
     right: 60px; top: -110px;
   }
+  $golden-bg-color: #fffff8;
   &:hover, body.dragover & {
     &:before, &:after {
-      background-color: #ffe;
+      background-color: $golden-bg-color;
       box-shadow: 0 -20px 20px rgba(255, 255, 192, 0.8);
     }
-    background-color: #ffe;
+    background-color: $golden-bg-color;
     box-shadow:
       inset 0 -10px rgba(255, 255, 255, 0.6),
       0 10px 30px 10px rgba(255, 255, 192, 0.8),
