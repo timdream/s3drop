@@ -1,7 +1,8 @@
 html {
   min-height: 100%;
-  background: linear-gradient(#b4bcbf, #ffffff) no-repeat;
-  background: -webkit-linear-gradient(#b4bcbf, white) no-repeat; }
+  background: linear-gradient(#b4bcbf, white) no-repeat;
+  background: -webkit-linear-gradient(#b4bcbf, white) no-repeat;
+}
 
 body {
   font: 14px sans-serif;
@@ -9,23 +10,28 @@ body {
   border: none;
   padding: 0;
   margin: 0;
-  color: #333; }
-  body > * {
+  color: #333;
+  > * {
     -webkit-transition: visibility 0.3s ease, opacity 0.3s ease;
-    transition: visibility 0.3s ease, opacity 0.3s ease; }
-  body.uninit > * {
+    transition: visibility 0.3s ease, opacity 0.3s ease;
+  }
+  &.uninit > * {
     visibility: hidden;
-    opacity: 0; }
+    opacity: 0;
+  }
+}
 
 header {
   background-color: #2d2d2d;
   border-bottom: 2px solid #000;
-  height: 32px; }
-  header a {
-    color: #fff; }
-    header a:not(:hover) {
-      text-decoration: none; }
-  header > p {
+  height: 32px;
+  a {
+    color: #fff;
+    &:not(:hover) {
+      text-decoration: none;
+    }
+  }
+  > p {
     position: absolute;
     width: 100%;
     height: 32px;
@@ -37,44 +43,45 @@ header {
     text-align: right;
     color: #fff;
     -webkit-transition: visibility 0.3s ease, opacity 0.3s ease;
-    transition: visibility 0.3s ease, opacity 0.3s ease; }
+    transition: visibility 0.3s ease, opacity 0.3s ease;
+  }
+}
 
 #login {
-  font-weight: bold; }
+  font-weight: bold;
+}
 
 body:not(.auth_needed) #login, #login_status:empty {
   visibility: hidden;
-  opacity: 0; }
+  opacity: 0;
+}
 
 @keyframes dramaticEntry {
   0% {
     opacity: 0;
     transform: translateY(-2000px); }
-
   60% {
     opacity: 1;
     transform: translateY(30px); }
-
   80% {
     transform: translateY(-10px); }
-
   100% {
-    transform: translateY(0); } }
+    transform: translateY(0); }
+}
+
 
 @-webkit-keyframes dramaticEntry {
   0% {
     opacity: 0;
     -webkit-transform: translateY(-2000px); }
-
   60% {
     opacity: 1;
     -webkit-transform: translateY(30px); }
-
   80% {
     -webkit-transform: translateY(-10px); }
-
   100% {
-    -webkit-transform: translateY(0); } }
+    -webkit-transform: translateY(0); }
+}
 
 /*
 <i> cloud, design by daneden
@@ -82,6 +89,7 @@ body:not(.auth_needed) #login, #login_status:empty {
 http://dabblet.com/gist/2945570
 https://gist.github.com/2945570
 */
+
 .cloud {
   position: absolute;
   top: 50%;
@@ -92,42 +100,63 @@ https://gist.github.com/2945570
   width: 450px;
   height: 150px;
   border-radius: 150px;
-  box-shadow: inset 0 -10px rgba(255, 255, 255, 0.6), 0 20px 20px rgba(0, 0, 0, 0.1), inset 0 -20px 20px rgba(0, 100, 160, 0.1);
-  transition: box-shadow 0.5s ease, background-color 0.5s ease, transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-  -webkit-transition: -webkit-transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  box-shadow:
+    inset 0 -10px rgba(255, 255, 255, 0.6),
+    0 20px 20px rgba(0, 0, 0, 0.1),
+    inset 0 -20px 20px rgba(0, 100, 160, 0.1);
+  transition:
+    box-shadow 0.5s ease,
+    background-color 0.5s ease,
+    transform 0.3s ease-in-out,
+    opacity 0.3s ease-in-out;
+  -webkit-transition:
+    -webkit-transform 0.3s ease-in-out,
+    opacity 0.3s ease-in-out;
   /* webkit doesn't support transition of :before and :after */
-  z-index: 2; }
-  body:not(.uninit) .cloud {
+
+  z-index: 2;
+
+  body:not(.uninit) & {
     animation: dramaticEntry 1s;
-    -webkit-animation: dramaticEntry 1s; }
-  .cloud:before, .cloud:after {
+    -webkit-animation: dramaticEntry 1s;
+  }
+
+  &:before, &:after {
     content: '';
     position: absolute;
     background-color: #fff;
     border-radius: 100%;
     box-shadow: 0 -20px 20px rgba(0, 0, 0, 0.05);
-    transition: box-shadow 0.5s ease, background-color 0.5s ease;
-    -webkit-transition: none; }
-  .cloud:before {
-    width: 140px;
-    height: 140px;
-    top: -60px;
-    left: 70px; }
-  .cloud:after {
-    width: 230px;
-    height: 230px;
-    right: 60px;
-    top: -110px; }
-  .cloud:hover, body.dragover .cloud {
-    background-color: #ffe;
-    box-shadow: inset 0 -10px rgba(255, 255, 255, 0.6), 0 10px 30px 10px rgba(255, 255, 192, 0.8), inset 0 -20px 20px rgba(0, 100, 160, 0.1); }
-    .cloud:hover:before, .cloud:hover:after, body.dragover .cloud:before, body.dragover .cloud:after {
+    transition:
+      box-shadow 0.5s ease,
+      background-color 0.5s ease;
+    -webkit-transition: none;
+  }
+  &:before {
+    width: 140px; height: 140px;
+    top: -60px; left: 70px;
+  }
+  &:after {
+    width: 230px; height: 230px;
+    right: 60px; top: -110px;
+  }
+  &:hover, body.dragover & {
+    &:before, &:after {
       background-color: #ffe;
-      box-shadow: 0 -20px 20px rgba(255, 255, 192, 0.8); }
-  body.dragover .cloud {
+      box-shadow: 0 -20px 20px rgba(255, 255, 192, 0.8);
+    }
+    background-color: #ffe;
+    box-shadow:
+      inset 0 -10px rgba(255, 255, 255, 0.6),
+      0 10px 30px 10px rgba(255, 255, 192, 0.8),
+      inset 0 -20px 20px rgba(0, 100, 160, 0.1);
+  }
+  body.dragover & {
     opacity: 0.8;
     transform: scale(1.5) rotate(10deg);
-    -webkit-transform: scale(1.5) rotate(10deg); }
+    -webkit-transform: scale(1.5) rotate(10deg);
+  }
+}
 
 #file_container {
   position: absolute;
@@ -138,15 +167,16 @@ https://gist.github.com/2945570
   width: 120%;
   height: 200%;
   overflow: hidden;
-  z-index: 10; }
-  #file_container input {
+  z-index: 10;
+  input {
     position: absolute;
     top: 0;
     right: 0;
     font-size: 400px;
     opacity: 0;
-    cursor: pointer;
-    /* Won't work in Fx 3.6 */ }
+    cursor: pointer; /* Won't work in Fx 3.6 */
+  }
+}
 
 #status {
   position: absolute;
@@ -158,7 +188,8 @@ https://gist.github.com/2945570
   overflow: visible;
   text-align: center;
   white-space: nowrap;
-  color: #666; }
+  color: #666;
+}
 
 #filelist {
   position: absolute;
@@ -170,9 +201,12 @@ https://gist.github.com/2945570
   overflow: visible;
   text-align: left;
   white-space: nowrap;
-  padding-bottom: 20px; }
-  #filelist li.pending {
-    opacity: 0.5; }
-  #filelist a[rel="delete"]:not(:hover) {
+  padding-bottom: 20px;
+  li.pending {
+    opacity: 0.5;
+  }
+  a[rel="delete"]:not(:hover) {
     color: #99f;
-    text-decoration: none; }
+    text-decoration: none;
+  }
+}
