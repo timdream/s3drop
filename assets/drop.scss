@@ -128,7 +128,7 @@ https://gist.github.com/2945570
 
   z-index: 2;
 
-  body:not(.uninit) & {
+  body.leave-uninit & {
     animation: dramaticEntry 1s;
     -webkit-animation: dramaticEntry 1s;
   }

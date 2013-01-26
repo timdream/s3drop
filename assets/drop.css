@@ -117,7 +117,7 @@ https://gist.github.com/2945570
   -webkit-transition: -webkit-transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
   /* webkit doesn't support transition of :before and :after */
   z-index: 2; }
-  body:not(.uninit) .cloud {
+  body.leave-uninit .cloud {
     animation: dramaticEntry 1s;
     -webkit-animation: dramaticEntry 1s; }
   body.uploading .cloud {

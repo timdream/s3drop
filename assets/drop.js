@@ -252,6 +252,16 @@ jQuery(function initDrop($) {
 
       $body.removeClass('uninit');
 
+      // There is no pseudo-class like :from() to target for
+      // the animation when leaving 'uninit' state.
+      // We will have to introduce a new state here.
+      $body.addClass('leave-uninit');
+      // We should be using animationend & webkitAnimationEnd here, however
+      // the event will never be triggered if the animation is interrupted.
+      setTimeout(function animationend() {
+        $body.removeClass('leave-uninit');
+      }, 1010);
+
       QueueUpload.max_file_size = Server.config.max_file_size;
 
       // Login not required, remove login label
