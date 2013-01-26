@@ -19,7 +19,7 @@ body {
 
 header {
   background-color: #2d2d2d;
-  border-bottom: 2px solid #000;
+  border-bottom: 2px solid black;
   height: 32px; }
   header a {
     color: #fff; }
@@ -76,6 +76,26 @@ body:not(.auth_needed) #login, #login_status:empty {
   100% {
     -webkit-transform: translateY(0); } }
 
+@keyframes shake {
+  0%, 50% {
+    transform: translateX(0); }
+
+  5%, 15%, 25%, 35%, 45% {
+    transform: translateX(-10px); }
+
+  10%, 20%, 30%, 40% {
+    transform: translateX(10px); } }
+
+@-webkit-keyframes shake {
+  0%, 50% {
+    -webkit-transform: translateX(0); }
+
+  5%, 15%, 25%, 35%, 45% {
+    -webkit-transform: translateX(-10px); }
+
+  10%, 20%, 30%, 40% {
+    -webkit-transform: translateX(10px); } }
+
 /*
 <i> cloud, design by daneden
 
@@ -100,6 +120,9 @@ https://gist.github.com/2945570
   body:not(.uninit) .cloud {
     animation: dramaticEntry 1s;
     -webkit-animation: dramaticEntry 1s; }
+  body.uploading .cloud {
+    animation: shake 2s infinite;
+    -webkit-animation: shake 2s infinite; }
   .cloud:before, .cloud:after {
     content: '';
     position: absolute;

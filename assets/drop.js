@@ -203,8 +203,9 @@ jQuery(function initDrop($) {
     QueueUpload.post_name = 'file';
     QueueUpload.url = './api/drop.php';
 
-    // We don't need this
-    // QueueUpload.onuploadstart =
+    QueueUpload.onuploadstart = function uploadstarted(file, xhr) {
+      $body.addClass('uploading');
+    };
 
     // When there is a progress we will update the progress
     QueueUpload.onuploadprogress = function uploadprogress(file,
@@ -215,11 +216,13 @@ jQuery(function initDrop($) {
 
     // When upload is completed we'll process the result from server
     // and decide if we want to continue the upload.
-    QueueUpload.onuploadcomplete = function uploadcomplete(file, xhr) {
+    QueueUpload.onuploadcomplete = function uploadcompleted(file, xhr) {
       if (xhr.status !== 200) {
         alert('Upload failed!');
         return false;
       }
+
+      $body.removeClass('uploading');
 
       updateStatus();
 
