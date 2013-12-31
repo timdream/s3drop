@@ -103,19 +103,49 @@ https://gist.github.com/2945570
 */
 
 .cloud {
+  @mixin cloud_dim($cloud_size) {
+    $cloud_height: 15 * $cloud_size;
+    $cloud_width: 45 * $cloud_size;
+
+    margin: (- $cloud_height / 2) (- $cloud_width /2);
+
+    width: $cloud_width;
+    height: $cloud_height;
+    border-radius: $cloud_height;
+    box-shadow:
+      inset 0 (- $cloud_size) rgba(255, 255, 255, 0.6),
+      0 (2 * $cloud_size) (2 * $cloud_size) rgba(0, 0, 0, 0.1),
+      inset 0 (- 2 * $cloud_size) (2 * $cloud_size) rgba(0, 100, 160, 0.1);
+
+    &:before, &:after {
+      box-shadow: 0 (- 2 * $cloud_size) (2 * $cloud_size) rgba(0, 0, 0, 0.05);
+    }
+
+    &:hover, body.dragover & {
+      &:before, &:after {
+        box-shadow: 0 (- 2 * $cloud_size) (2 * $cloud_size) rgba(255, 255, 192, 0.8);
+      }
+      box-shadow:
+        inset 0 (- $cloud_size) rgba(255, 255, 255, 0.6),
+        0 $cloud_size (3 * $cloud_size) $cloud_size rgba(255, 255, 192, 0.8),
+        inset 0 (-2 * $cloud_size) (2 * $cloud_size) rgba(0, 100, 160, 0.1);
+    }
+  }
+
   position: absolute;
   top: 50%;
   left: 50%;
-  margin: -75px -225px;
   display: block;
   background-color: #fff;
-  width: 450px;
-  height: 150px;
-  border-radius: 150px;
-  box-shadow:
-    inset 0 -10px rgba(255, 255, 255, 0.6),
-    0 20px 20px rgba(0, 0, 0, 0.1),
-    inset 0 -20px 20px rgba(0, 100, 160, 0.1);
+
+  @include cloud_dim(10px);
+  @media (min-width: 520px) and (max-width: 800px) {
+    @include cloud_dim(7.5px);
+  }
+  @media (max-width: 520px) {
+    @include cloud_dim(5px);
+  }
+
   transition:
     box-shadow 0.5s ease,
     background-color 0.5s ease,
@@ -143,31 +173,29 @@ https://gist.github.com/2945570
     position: absolute;
     background-color: #fff;
     border-radius: 100%;
-    box-shadow: 0 -20px 20px rgba(0, 0, 0, 0.05);
     transition:
       box-shadow 0.5s ease,
       background-color 0.5s ease;
     -webkit-transition: none;
   }
   &:before {
-    width: 140px; height: 140px;
-    top: -60px; left: 70px;
+    width: (14 / 45) * 100%;
+    height: (14 / 15) * 100%;
+    top: (-6 / 15) * 100%;
+    left: (7 / 45) * 100%;
   }
   &:after {
-    width: 230px; height: 230px;
-    right: 60px; top: -110px;
+    width: (23 / 45) * 100%;
+    height: (23 / 15) * 100%;
+    top: (-11 / 15) * 100%;
+    right: (6 / 45) * 100%;
   }
   $golden-bg-color: #fffff8;
   &:hover, body.dragover & {
     &:before, &:after {
       background-color: $golden-bg-color;
-      box-shadow: 0 -20px 20px rgba(255, 255, 192, 0.8);
     }
     background-color: $golden-bg-color;
-    box-shadow:
-      inset 0 -10px rgba(255, 255, 255, 0.6),
-      0 10px 30px 10px rgba(255, 255, 192, 0.8),
-      inset 0 -20px 20px rgba(0, 100, 160, 0.1);
   }
   body.dragover & {
     opacity: 0.8;
@@ -196,30 +224,34 @@ https://gist.github.com/2945570
   }
 }
 
-#status {
+#content {
+  $content_width: 800px;
   position: absolute;
   top: 50%;
   left: 50%;
-  margin: 150px 0 0 -400px;
-  width: 800px;
+  margin: 150px 0 0 (- $content_width / 2);
+  width: $content_width;
   height: auto;
   overflow: visible;
+  @media (max-width: 800px) {
+    left: 0;
+    margin: 100px 0 0 0;
+    width: 100%;
+  }
+}
+
+#status {
   text-align: center;
-  white-space: nowrap;
   color: #666;
 }
 
 #filelist {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  margin: 200px 0 0 -200px;
+  margin: 0 auto;
   width: 400px;
-  height: auto;
-  overflow: visible;
-  text-align: left;
-  white-space: nowrap;
   padding-bottom: 20px;
+  @media (max-width: 800px) {
+    width: auto;
+  }
   li.pending {
     opacity: 0.5;
   }

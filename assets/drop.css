@@ -19,7 +19,7 @@ body {
 
 header {
   background-color: #2d2d2d;
-  border-bottom: 2px solid black;
+  border-bottom: 2px solid #000;
   height: 32px; }
   header a {
     color: #fff; }
@@ -106,9 +106,9 @@ https://gist.github.com/2945570
   position: absolute;
   top: 50%;
   left: 50%;
-  margin: -75px -225px;
   display: block;
   background-color: #fff;
+  margin: -75px -225px;
   width: 450px;
   height: 150px;
   border-radius: 150px;
@@ -117,6 +117,38 @@ https://gist.github.com/2945570
   -webkit-transition: -webkit-transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
   /* webkit doesn't support transition of :before and :after */
   z-index: 2; }
+  .cloud:before, .cloud:after {
+    box-shadow: 0 -20px 20px rgba(0, 0, 0, 0.05); }
+  .cloud:hover, body.dragover .cloud {
+    box-shadow: inset 0 -10px rgba(255, 255, 255, 0.6), 0 10px 30px 10px rgba(255, 255, 192, 0.8), inset 0 -20px 20px rgba(0, 100, 160, 0.1); }
+    .cloud:hover:before, .cloud:hover:after, body.dragover .cloud:before, body.dragover .cloud:after {
+      box-shadow: 0 -20px 20px rgba(255, 255, 192, 0.8); }
+  @media (min-width: 520px) and (max-width: 800px) {
+    .cloud {
+      margin: -56.25px -168.75px;
+      width: 337.5px;
+      height: 112.5px;
+      border-radius: 112.5px;
+      box-shadow: inset 0 -7.5px rgba(255, 255, 255, 0.6), 0 15px 15px rgba(0, 0, 0, 0.1), inset 0 -15px 15px rgba(0, 100, 160, 0.1); }
+      .cloud:before, .cloud:after {
+        box-shadow: 0 -15px 15px rgba(0, 0, 0, 0.05); }
+      .cloud:hover, body.dragover .cloud {
+        box-shadow: inset 0 -7.5px rgba(255, 255, 255, 0.6), 0 7.5px 22.5px 7.5px rgba(255, 255, 192, 0.8), inset 0 -15px 15px rgba(0, 100, 160, 0.1); }
+        .cloud:hover:before, .cloud:hover:after, body.dragover .cloud:before, body.dragover .cloud:after {
+          box-shadow: 0 -15px 15px rgba(255, 255, 192, 0.8); } }
+  @media (max-width: 520px) {
+    .cloud {
+      margin: -37.5px -112.5px;
+      width: 225px;
+      height: 75px;
+      border-radius: 75px;
+      box-shadow: inset 0 -5px rgba(255, 255, 255, 0.6), 0 10px 10px rgba(0, 0, 0, 0.1), inset 0 -10px 10px rgba(0, 100, 160, 0.1); }
+      .cloud:before, .cloud:after {
+        box-shadow: 0 -10px 10px rgba(0, 0, 0, 0.05); }
+      .cloud:hover, body.dragover .cloud {
+        box-shadow: inset 0 -5px rgba(255, 255, 255, 0.6), 0 5px 15px 5px rgba(255, 255, 192, 0.8), inset 0 -10px 10px rgba(0, 100, 160, 0.1); }
+        .cloud:hover:before, .cloud:hover:after, body.dragover .cloud:before, body.dragover .cloud:after {
+          box-shadow: 0 -10px 10px rgba(255, 255, 192, 0.8); } }
   body.leave-uninit .cloud {
     animation: dramaticEntry 1s;
     -webkit-animation: dramaticEntry 1s; }
@@ -128,25 +160,22 @@ https://gist.github.com/2945570
     position: absolute;
     background-color: #fff;
     border-radius: 100%;
-    box-shadow: 0 -20px 20px rgba(0, 0, 0, 0.05);
     transition: box-shadow 0.5s ease, background-color 0.5s ease;
     -webkit-transition: none; }
   .cloud:before {
-    width: 140px;
-    height: 140px;
-    top: -60px;
-    left: 70px; }
+    width: 31.11111%;
+    height: 93.33333%;
+    top: -40%;
+    left: 15.55556%; }
   .cloud:after {
-    width: 230px;
-    height: 230px;
-    right: 60px;
-    top: -110px; }
+    width: 51.11111%;
+    height: 153.33333%;
+    top: -73.33333%;
+    right: 13.33333%; }
   .cloud:hover, body.dragover .cloud {
-    background-color: #fffff8;
-    box-shadow: inset 0 -10px rgba(255, 255, 255, 0.6), 0 10px 30px 10px rgba(255, 255, 192, 0.8), inset 0 -20px 20px rgba(0, 100, 160, 0.1); }
+    background-color: #fffff8; }
     .cloud:hover:before, .cloud:hover:after, body.dragover .cloud:before, body.dragover .cloud:after {
-      background-color: #fffff8;
-      box-shadow: 0 -20px 20px rgba(255, 255, 192, 0.8); }
+      background-color: #fffff8; }
   body.dragover .cloud {
     opacity: 0.8;
     transform: scale(1.5) rotate(10deg);
@@ -171,29 +200,31 @@ https://gist.github.com/2945570
     cursor: pointer;
     /* Won't work in Fx 3.6 */ }
 
-#status {
+#content {
   position: absolute;
   top: 50%;
   left: 50%;
   margin: 150px 0 0 -400px;
   width: 800px;
   height: auto;
-  overflow: visible;
+  overflow: visible; }
+  @media (max-width: 800px) {
+    #content {
+      left: 0;
+      margin: 100px 0 0 0;
+      width: 100%; } }
+
+#status {
   text-align: center;
-  white-space: nowrap;
   color: #666; }
 
 #filelist {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  margin: 200px 0 0 -200px;
+  margin: 0 auto;
   width: 400px;
-  height: auto;
-  overflow: visible;
-  text-align: left;
-  white-space: nowrap;
   padding-bottom: 20px; }
+  @media (max-width: 800px) {
+    #filelist {
+      width: auto; } }
   #filelist li.pending {
     opacity: 0.5; }
   #filelist a[rel="delete"]:not(:hover) {

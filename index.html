@@ -2,6 +2,7 @@
 <html lang="en-US">
 <head>
   <meta charset=UTF-8>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Drop</title>
   <link rel="stylesheet" type="text/css" href="./assets/drop.css">
 </head>
@@ -14,9 +15,11 @@
   <form action="#" method="get" class="cloud">
     <p id="file_container"><input type="file" id="files" multiple /></p>
   </form>
-  <p id="status">Drop files on the cloud, or click to select files.
-You may drop/select more files while uploading.</p>
-  <ul id="filelist"></ul>
+  <div id="content">
+    <p id="status">Drop files on the cloud, or click to select files.
+  You may drop/select more files while uploading.</p>
+    <ul id="filelist"></ul>
+  </div>
 <script defer type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
 <script defer type="text/javascript" src="./assets/go2/src/google-oauth2.js"></script>
 <script defer type="text/javascript" src="./assets/queueupload.js"></script>
