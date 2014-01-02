@@ -65,6 +65,8 @@ jQuery(function initDrop($) {
   (function init() {
     var $body = $(document.body);
 
+    var queueUpload = new QueueUpload();
+
     // Allow dropping file to container
     $('#file_container').on('drop', function dropFile(evt) {
       evt.preventDefault();
@@ -75,7 +77,7 @@ jQuery(function initDrop($) {
         return;
       }
 
-      QueueUpload.addQueue(evt.originalEvent.dataTransfer.files);
+      queueUpload.addQueue(evt.originalEvent.dataTransfer.files);
     }).on('dragover', function dragoverFile(evt) {
       evt.preventDefault();
     }).on('dragenter', function dragenterFile(evt) {
@@ -103,7 +105,7 @@ jQuery(function initDrop($) {
         return;
       }
 
-      QueueUpload.addQueue(this.files);
+      queueUpload.addQueue(this.files);
 
       // Reset the from to clean up selected files
       // so user may be able to select again.
@@ -113,18 +115,18 @@ jQuery(function initDrop($) {
     // Textual label status
     var $status = $('#status');
     function updateStatus(name, loaded, total) {
-      if (!QueueUpload.isUploading()) {
+      if (!queueUpload.isUploading()) {
         $status.text('Done.');
       } else {
         $status.text(
           'Uploading: ' + name + ', ' +
           (loaded >> 10).toString(10) + '/' + (total >> 10) +
           ' Kbytes (' + (loaded / total * 100).toPrecision(3) + '%)' +
-          ', ' + QueueUpload.getQueueLength().toString(10) +
+          ', ' + queueUpload.getQueueLength().toString(10) +
           ' file(s) remaining.');
       }
     }
-    if (!QueueUpload.isSupported || !window.JSON) {
+    if (!queueUpload.isSupported || !window.JSON) {
       $status.text('Error: Browser unsupported.');
     }
 
@@ -200,15 +202,15 @@ jQuery(function initDrop($) {
       });
     }
 
-    QueueUpload.post_name = 'file';
-    QueueUpload.url = './api/drop.php';
+    queueUpload.post_name = 'file';
+    queueUpload.url = './api/drop.php';
 
-    QueueUpload.onuploadstart = function uploadstarted(file, xhr) {
+    queueUpload.onuploadstart = function uploadstarted(file, xhr) {
       $body.addClass('uploading');
     };
 
     // When there is a progress we will update the progress
-    QueueUpload.onuploadprogress = function uploadprogress(file,
+    queueUpload.onuploadprogress = function uploadprogress(file,
                                                            xhr,
                                                            loaded, total) {
       updateStatus(file.name, loaded, total);
@@ -216,7 +218,7 @@ jQuery(function initDrop($) {
 
     // When upload is completed we'll process the result from server
     // and decide if we want to continue the upload.
-    QueueUpload.onuploadcomplete = function uploadcompleted(file, xhr) {
+    queueUpload.onuploadcomplete = function uploadcompleted(file, xhr) {
       if (xhr.status !== 200) {
         alert('Upload failed!');
         return false;
@@ -262,7 +264,7 @@ jQuery(function initDrop($) {
         $body.removeClass('leave-uninit');
       }, 1010);
 
-      QueueUpload.max_file_size = Server.config.max_file_size;
+      queueUpload.max_file_size = Server.config.max_file_size;
 
       // Login not required, remove login label
       if (Server.config.disable_login) {
@@ -275,14 +277,14 @@ jQuery(function initDrop($) {
 
       // Initialize GO2
       GO2.onlogin = function loggedIn(token) {
-        QueueUpload.form_data.access_token = token;
+        queueUpload.form_data.access_token = token;
 
         $body.removeClass('auth_needed');
         updateLoginStatus();
         updateFilelist();
       };
       GO2.onlogout = function loggedOut() {
-        QueueUpload.form_data.access_token = undefined;
+        queueUpload.form_data.access_token = undefined;
 
         $body.addClass('auth_needed');
         $filelist.empty();

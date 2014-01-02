@@ -1,116 +1,111 @@
 'use strict';
 
 /* QueueUpload object includes the queue and the actual upload machinery. */
-var QueueUpload = (function initQueueUpload() {
-  // Object to hook up all public functions
-  var QueueUpload = {
-    // max file size allowed, in bytes.
-    // falsey value to disable the check.
-    max_file_size: 0,
-
-    // key: values to accompany the file when upload.
-    form_data: {},
-
-    // post field name to use for the file.
-    post_name: 'file',
-
-    // url to upload to.
-    url: '',
-
-    // callbacks
-    onuploadstart: null,
-    onuploadprogress: null,
-    onuploadcomplete: null
-  };
-
+var QueueUpload = function QueueUpload() {
   // Private Array to place files
-  var queue = [];
+  this._queue = [];
 
   // Private Boolean to know if we are currently uploading
-  var uploading = false;
+  this._uploading = false;
+};
+
+QueueUpload.prototype = {
+  // max file size allowed, in bytes.
+  // falsey value to disable the check.
+  max_file_size: 0,
+
+  // key: values to accompany the file when upload.
+  form_data: {},
+
+  // post field name to use for the file.
+  post_name: 'file',
+
+  // url to upload to.
+  url: '',
+
+  // callbacks
+  onuploadstart: null,
+  onuploadprogress: null,
+  onuploadcomplete: null,
 
   // Public isSupported
-  QueueUpload.isSupported = !!(window.FormData &&
-                       window.XMLHttpRequest &&
-                       Array.prototype.forEach);
+  isSupported: !!(window.FormData &&
+                  window.XMLHttpRequest &&
+                  Array.prototype.forEach),
 
   // Public isUploading()
-  QueueUpload.isUploading = function isUploading() {
-    return uploading;
-  };
+  isUploading: function isUploading() {
+    return this._uploading;
+  },
 
-  // Public getQueueLength
-  QueueUpload.getQueueLength = function getQueueLength() {
-    return queue.length;
-  };
+  // Public getQueueLength()
+  getQueueLength: function getQueueLength() {
+    return this._queue.length;
+  },
 
   // Public addQueue()
   // filelist: a [object FileList] containing files to upload
-  QueueUpload.addQueue = function addQueue(filelist) {
-    if (!filelist || !QueueUpload.isSupported)
+  addQueue: function addQueue(filelist) {
+    if (!filelist || !this.isSupported)
       return;
 
     Array.prototype.forEach.call(filelist, function fileListEach(file) {
-      if (QueueUpload.max_file_size &&
-          file.size > QueueUpload.max_file_size) {
+      if (this.max_file_size && file.size > this.max_file_size) {
         alert('File ' + file.name + ' exceeds maximum file size.');
         return;
       }
 
-      queue.push(file);
-    });
+      this._queue.push(file);
+    }.bind(this));
 
-    if (!uploading)
-      startUpload();
-  };
+    if (!this._uploading)
+      this._startUpload();
+  },
 
-  var startUpload = function startUpload() {
+  // Private startUpload()
+  _startUpload: function _startUpload() {
     var formData = new FormData(),
-      file = queue.shift(),
+      file = this._queue.shift(),
       xhr = new XMLHttpRequest();
 
-    formData.append(QueueUpload.post_name, file);
+    formData.append(this.post_name, file);
 
-    for (var name in QueueUpload.form_data) {
-      formData.append(name, QueueUpload.form_data[name]);
+    for (var name in this.form_data) {
+      formData.append(name, this.form_data[name]);
     }
 
-    xhr.open('POST', QueueUpload.url);
-    uploading = true;
+    xhr.open('POST', this.url);
+    this._uploading = true;
 
     var callbackResult;
-    if (QueueUpload.onuploadstart)
-      callbackResult = QueueUpload.onuploadstart(file, xhr);
+    if (this.onuploadstart)
+      callbackResult = this.onuploadstart(file, xhr);
 
     if (callbackResult === false) {
-      startUpload();
+      this._startUpload();
       return;
     }
 
     xhr.upload.onprogress = function xhrProgress(evt) {
-      if (QueueUpload.onuploadprogress)
-        QueueUpload.onuploadprogress(file, xhr, evt.loaded, evt.total);
-    };
+      if (this.onuploadprogress)
+        this.onuploadprogress(file, xhr, evt.loaded, evt.total);
+    }.bind(this);
 
     xhr.onreadystatechange = function xhrStateChange(evt) {
       if (xhr.readyState !== XMLHttpRequest.DONE)
         return;
 
-      uploading = false;
+      this._uploading = false;
 
       var callbackResult;
-      if (QueueUpload.onuploadcomplete)
-        callbackResult = QueueUpload.onuploadcomplete(file, xhr);
+      if (this.onuploadcomplete)
+        callbackResult = this.onuploadcomplete(file, xhr);
 
       // Start the next round of upload
-      if (queue.length && callbackResult !== false)
-        startUpload();
-    };
+      if (this._queue.length && callbackResult !== false)
+        this._startUpload();
+    }.bind(this);
 
     xhr.send(formData);
-  };
-
-
-  // Return the public APIs
-  return QueueUpload;
-})();
+  }
+};
