@@ -3,76 +3,19 @@
 /* Actual front-end for Drop */
 
 jQuery(function initDrop($) {
-  // ==== Remote Server functions
-  // (doesn't include upload)
-  var Server = {
-    // get config
-    getConfig: function getConfig(callback) {
-      $.getJSON('./api/getconfig.php', function gotGetConfigResult(result) {
-        if (!result || result.error) {
-          alert(result.error || 'Get config failed.');
-          if (callback)
-            callback();
-
-          return;
-        }
-
-        Server.config = result;
-        if (callback)
-          callback();
-      });
-    },
-    // list files on the server
-    listFiles: function listFiles(callback) {
-      var url = './api/list.php?access_token=' + GO2.getAccessToken();
-      $.getJSON(url, function gotListFilesResult(result) {
-        if (!result || result.error || !result.files) {
-          alert(result.error || 'Get file list failed.');
-
-          if (callback)
-            callback();
-
-          return;
-        }
-
-        if (callback)
-          callback(result.files);
-      });
-    },
-    // delete file on the server
-    deleteFile: function deleteFile(callback, filename) {
-      $.post('./api/delete.php', {
-          access_token: GO2.getAccessToken(),
-          filename: filename
-        },
-        function gotResult(result) {
-          if (!result || result.error) {
-            alert(result.error || 'Server Error');
-            if (callback)
-              callback(false);
-
-            return;
-          }
-
-          callback(true);
-        },
-        'json'
-      );
-    }
-  };
-
   // ==== Front-end Controls
   (function init() {
     var $body = $(document.body);
 
     var queueUpload = new QueueUpload();
+    var api = new DropAPI();
 
     // Allow dropping file to container
     $('#file_container').on('drop', function dropFile(evt) {
       evt.preventDefault();
       $body.removeClass('dragover');
 
-      if (!Server.config.disable_login && !GO2.getAccessToken()) {
+      if (!api.config.disable_login && !GO2.getAccessToken()) {
         alert('You need to login first.');
         return;
       }
@@ -98,7 +41,7 @@ jQuery(function initDrop($) {
 
     // Allow user to select files from the control
     $('#files').on('change', function changeFiles(evt) {
-      if (!Server.config.disable_login && !GO2.getAccessToken()) {
+      if (!api.config.disable_login && !GO2.getAccessToken()) {
         alert('You need to login first.');
 
         this.form.reset();
@@ -168,7 +111,7 @@ jQuery(function initDrop($) {
 
       var $a = $(this);
       var $li = $a.parents('li');
-      Server.deleteFile(function fileDeleteResult(result) {
+      api.deleteFile(function fileDeleteResult(result) {
         if (result) {
           $li.remove();
         } else {
@@ -183,7 +126,7 @@ jQuery(function initDrop($) {
       $li.append($('<a/>').attr('href', baseHref + 'files/' + filename)
                           .text(filename));
 
-      if (!Server.config.disable_login) {
+      if (!api.config.disable_login) {
         $li.append(' [')
           .append($('<a rel="delete" href="#" />')
             .data('filename', filename)
@@ -194,7 +137,7 @@ jQuery(function initDrop($) {
       $filelist.append($li);
     }
     function updateFilelist() {
-      Server.listFiles(function listFilesResult(files) {
+      api.listFiles(function listFilesResult(files) {
         if (!files)
           return;
 
@@ -248,8 +191,8 @@ jQuery(function initDrop($) {
       return true;
     };
 
-    Server.getConfig(function gotConfig() {
-      if (!Server.config)
+    api.getConfig(function gotConfig(config) {
+      if (!config)
         return;
 
       $body.removeClass('uninit');
@@ -264,10 +207,10 @@ jQuery(function initDrop($) {
         $body.removeClass('leave-uninit');
       }, 1010);
 
-      queueUpload.max_file_size = Server.config.max_file_size;
+      queueUpload.max_file_size = config.max_file_size;
 
       // Login not required, remove login label
-      if (Server.config.disable_login) {
+      if (config.disable_login) {
         $login.remove();
 
         return;
@@ -291,7 +234,7 @@ jQuery(function initDrop($) {
         $login_status.empty();
       };
       GO2.init({
-        client_id: Server.config.google_oauth2_client_id,
+        client_id: config.google_oauth2_client_id,
         scope: 'https://www.googleapis.com/auth/userinfo.email'
       });
 
