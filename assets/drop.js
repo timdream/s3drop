@@ -7,13 +7,14 @@ jQuery(function initDrop($) {
 
   var queueUpload = new QueueUpload();
   var api = new DropAPI();
+  var go2 = null;
 
   // Allow dropping file to container
   $('#file_container').on('drop', function dropFile(evt) {
     evt.preventDefault();
     $body.removeClass('dragover');
 
-    if (!api.config.disable_login && !GO2.getAccessToken()) {
+    if (!api.config.disable_login && !go2.getAccessToken()) {
       alert('You need to login first.');
       return;
     }
@@ -39,7 +40,7 @@ jQuery(function initDrop($) {
 
   // Allow user to select files from the control
   $('#files').on('change', function changeFiles(evt) {
-    if (!api.config.disable_login && !GO2.getAccessToken()) {
+    if (!api.config.disable_login && !go2.getAccessToken()) {
       alert('You need to login first.');
 
       this.form.reset();
@@ -76,16 +77,16 @@ jQuery(function initDrop($) {
   $login.children('a').on('click', function clickLogin(evt) {
     evt.preventDefault();
 
-    if (GO2.getAccessToken())
+    if (go2.getAccessToken())
       return;
 
-    GO2.login(false, false);
+    go2.login(false, false);
   });
 
   var $login_status = $('#login_status');
   function updateLoginStatus() {
     var url = 'https://www.googleapis.com/oauth2/v1/userinfo?access_token=' +
-      GO2.getAccessToken();
+      go2.getAccessToken();
     $.getJSON(url, function gotUserInfo(result) {
       if (!result || !result.email)
         return;
@@ -217,26 +218,27 @@ jQuery(function initDrop($) {
     $body.addClass('auth_needed');
 
     // Initialize GO2
-    GO2.onlogin = function loggedIn(token) {
+    go2 = new GO2({
+      clientId: config.google_oauth2_client_id,
+      scope: 'https://www.googleapis.com/auth/userinfo.email'
+    });
+    go2.onlogin = function loggedIn(token) {
       queueUpload.form_data.access_token = token;
+      api.accessToken = token;
 
       $body.removeClass('auth_needed');
       updateLoginStatus();
       updateFilelist();
     };
-    GO2.onlogout = function loggedOut() {
+    go2.onlogout = function loggedOut() {
       queueUpload.form_data.access_token = undefined;
 
       $body.addClass('auth_needed');
       $filelist.empty();
       $login_status.empty();
     };
-    GO2.init({
-      client_id: config.google_oauth2_client_id,
-      scope: 'https://www.googleapis.com/auth/userinfo.email'
-    });
 
     // Attempt to login silently.
-    GO2.login(false, true);
+    go2.login(false, true);
   });
 });
