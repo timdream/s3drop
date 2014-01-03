@@ -7,15 +7,23 @@ jQuery(function initDrop($) {
 
   var queueUpload = new QueueUpload();
   var api = new DropAPI();
-  var go2 = null;
+  var go2 = new GO2({
+    clientId: GOOGLE_OAUTH2_CLIENT_ID,
+    scope: [
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://spreadsheets.google.com/feeds/']
+  });
+
+  api.spreadsheetKey = GOOGLE_SPREADSHEET_KEY;
 
   // Allow dropping file to container
   $('#file_container').on('drop', function dropFile(evt) {
     evt.preventDefault();
     $body.removeClass('dragover');
 
-    if (!api.config.disable_login && !go2.getAccessToken()) {
-      alert('You need to login first.');
+    if (!go2.getAccessToken() ||!api.hasS3Access()) {
+      alert('You need to login with the proper Google account first.');
+
       return;
     }
 
@@ -40,8 +48,8 @@ jQuery(function initDrop($) {
 
   // Allow user to select files from the control
   $('#files').on('change', function changeFiles(evt) {
-    if (!api.config.disable_login && !go2.getAccessToken()) {
-      alert('You need to login first.');
+    if (!go2.getAccessToken() ||!api.hasS3Access()) {
+      alert('You need to login with the proper Google account first.');
 
       this.form.reset();
       return;
@@ -125,13 +133,11 @@ jQuery(function initDrop($) {
     $li.append($('<a/>').attr('href', baseHref + 'files/' + filename)
                         .text(filename));
 
-    if (!api.config.disable_login) {
-      $li.append(' [')
-        .append($('<a rel="delete" href="#" />')
-          .data('filename', filename)
-          .text('delete'))
-        .append(']');
-    }
+    $li.append(' [')
+      .append($('<a rel="delete" href="#" />')
+        .data('filename', filename)
+        .text('delete'))
+      .append(']');
 
     $filelist.append($li);
   }
@@ -190,55 +196,49 @@ jQuery(function initDrop($) {
     return true;
   };
 
-  api.getConfig(function gotConfig(config) {
-    if (!config)
-      return;
+  go2.onlogin = function loggedIn(token) {
+    api.accessToken = token;
+    api.getConfig(function gotConfig(hasAccess) {
+      if (!hasAccess) {
+        alert('Your Google account has no access to the spreadsheet ' +
+          'specified.\n' +
+          'This may be an error, or you may have no access to this service.');
 
-    $body.removeClass('uninit');
+        setTimeout(function() {
+          go2.logout();
+        });
+        return;
+      }
+    });
 
-    // There is no pseudo-class like :from() to target for
-    // the animation when leaving 'uninit' state.
-    // We will have to introduce a new state here.
-    $body.addClass('leave-uninit');
-    // We should be using animationend & webkitAnimationEnd here, however
-    // the event will never be triggered if the animation is interrupted.
-    setTimeout(function animationend() {
-      $body.removeClass('leave-uninit');
-    }, 1010);
-
-    queueUpload.max_file_size = config.max_file_size;
-
-    // Login not required, remove login label
-    if (config.disable_login) {
-      $login.remove();
-
-      return;
-    }
+    $body.removeClass('auth_needed');
+    updateLoginStatus();
+    updateFilelist();
+  };
+  go2.onlogout = function loggedOut() {
+    api.accessToken = undefined;
+    api.awsConfig = undefined;
 
     $body.addClass('auth_needed');
+    $filelist.empty();
+    $login_status.empty();
+  };
 
-    // Initialize GO2
-    go2 = new GO2({
-      clientId: config.google_oauth2_client_id,
-      scope: 'https://www.googleapis.com/auth/userinfo.email'
-    });
-    go2.onlogin = function loggedIn(token) {
-      queueUpload.form_data.access_token = token;
-      api.accessToken = token;
+  // Attempt to login silently.
+  go2.login(false, true);
 
-      $body.removeClass('auth_needed');
-      updateLoginStatus();
-      updateFilelist();
-    };
-    go2.onlogout = function loggedOut() {
-      queueUpload.form_data.access_token = undefined;
+  // Start the transition
+  $body.removeClass('uninit');
 
-      $body.addClass('auth_needed');
-      $filelist.empty();
-      $login_status.empty();
-    };
+  // There is no pseudo-class like :from() to target for
+  // the animation when leaving 'uninit' state.
+  // We will have to introduce a new state here.
+  $body.addClass('leave-uninit');
+  // We should be using animationend & webkitAnimationEnd here, however
+  // the event will never be triggered if the animation is interrupted.
+  setTimeout(function animationend() {
+    $body.removeClass('leave-uninit');
+  }, 1010);
 
-    // Attempt to login silently.
-    go2.login(false, true);
-  });
+  $body.addClass('auth_needed');
 });
