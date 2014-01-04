@@ -78,6 +78,29 @@ DropAPI.prototype = {
     };
   },
 
+  getAWSSignedBucketObjectURL: function ds_getAWSSignedBucketObjectURL(uri, expires) {
+    var awsConfig = this.awsConfig;
+    var url = this.getAWSBucketObjectURL(uri);
+    var stringToSign =
+      /* HTTP-Verb */ 'GET\n' +
+      /* Content-MD5 */ '\n' +
+      /* Content-Type */ '\n' +
+      /* Expires */ + expires + '\n' +
+      /* CanonicalizedAmzHeaders */ '' +
+      /* CanonicalizedResource */ '/' +
+        awsConfig.bucketName + encodeURI(uri);
+
+    var signature =
+      CryptoJS.HmacSHA1(stringToSign, this.awsConfig.secretAccessKey)
+        .toString(CryptoJS.enc.Base64);
+
+    url += '?AWSAccessKeyId=' + awsConfig.accessKeyId +
+      '&Signature=' + encodeURIComponent(signature) +
+      '&Expires=' + expires;
+
+    return url;
+  },
+
   getAWSBucketObjectURL: function ds_getAWSBucketObjectURL(uri) {
     var awsConfig = this.awsConfig;
     var url = awsConfig.protocol + '://' +

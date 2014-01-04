@@ -17,6 +17,8 @@ jQuery(function initDrop($) {
   queueUpload.HTTP_METHOD = 'PUT';
   api.spreadsheetKey = GOOGLE_SPREADSHEET_KEY;
 
+  var linkExpireTime;
+
   // Allow dropping file to container
   $('#file_container').on('drop', function dropFile(evt) {
     evt.preventDefault();
@@ -106,9 +108,6 @@ jQuery(function initDrop($) {
 
   // List of files and base href of the link to file
   var $filelist = $('#filelist');
-  var baseHref = window.location.href.substr(0,
-                                             window.location.href
-                                             .lastIndexOf('/') + 1);
 
   // Delete file when user click on a delete link
   $filelist.on('click', 'a[rel="delete"]', function clickDeleteFile(evt) {
@@ -131,8 +130,9 @@ jQuery(function initDrop($) {
   });
   function addFileToList(filename) {
     var $li = $('<li/>');
-    $li.append($('<a/>').attr('href', baseHref + 'files/' + filename)
-                        .text(filename));
+    var href = api.getAWSSignedBucketObjectURL('/' + filename,
+                                               linkExpireTime);
+    $li.append($('<a target="_blank" />').attr('href', href).text(filename));
 
     $li.append(' [')
       .append($('<a rel="delete" href="#" />')
@@ -226,6 +226,9 @@ jQuery(function initDrop($) {
         });
         return;
       }
+
+      linkExpireTime =
+        Math.floor((new Date()).getTime() / 1000) + LINK_EXPIRES_IN;
 
       updateFilelist();
     });
