@@ -166,22 +166,38 @@ DropAPI.prototype = {
 
   // delete file on the server
   deleteFile: function ds_deleteFile(callback, filename) {
-    $.post('./api/delete.php', {
-        access_token: this.accessToken,
-        filename: filename
-      },
-      function gotResult(result) {
-        if (!result || result.error) {
-          alert(result.error || 'Server Error');
-          if (callback)
-            callback.call(this, false);
+    var uri = '/' + filename;
+    var url = this.getAWSBucketObjectURL(uri);
+    var headers = this.getAWSAuthorizationInfo('DELETE', uri);
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('DELETE', url);
+
+    for (var name in headers) {
+      xhr.setRequestHeader(name, headers[name]);
+    }
+
+    xhr.onreadystatechange = function xhrStateChange(evt) {
+      if (xhr.readyState !== XMLHttpRequest.DONE)
+        return;
+
+      var xmlDoc = xhr.responseXML;
+
+      if (xmlDoc) {
+        var errorInfo = this.getAWSErrorInfo(xmlDoc);
+        if (errorInfo) {
+          callback.call(this, false, errorInfo);
+
+          return;
+        } else if (xhr.status !== 204) {
+          callback.call(this, false);
 
           return;
         }
+      }
 
-        callback.call(this, true);
-      }.bind(this),
-      'json'
-    );
+      callback.call(this, (xhr.status === 204));
+    }.bind(this);
+    xhr.send();
   }
 };
