@@ -1,4 +1,0 @@
-#!/bin/sh
-
-rsync -azzvP --delete --exclude '.*' --exclude 'files' \
-./ h2:timc-www/www/drop/
