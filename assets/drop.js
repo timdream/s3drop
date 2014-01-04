@@ -14,6 +14,7 @@ jQuery(function initDrop($) {
       'https://spreadsheets.google.com/feeds/']
   });
 
+  queueUpload.HTTP_METHOD = 'PUT';
   api.spreadsheetKey = GOOGLE_SPREADSHEET_KEY;
 
   // Allow dropping file to container
@@ -21,7 +22,7 @@ jQuery(function initDrop($) {
     evt.preventDefault();
     $body.removeClass('dragover');
 
-    if (!go2.getAccessToken() ||!api.hasS3Access()) {
+    if (!go2.getAccessToken() || !api.hasS3Access()) {
       alert('You need to login with the proper Google account first.');
 
       return;
@@ -48,7 +49,7 @@ jQuery(function initDrop($) {
 
   // Allow user to select files from the control
   $('#files').on('change', function changeFiles(evt) {
-    if (!go2.getAccessToken() ||!api.hasS3Access()) {
+    if (!go2.getAccessToken() || !api.hasS3Access()) {
       alert('You need to login with the proper Google account first.');
 
       this.form.reset();
@@ -142,9 +143,14 @@ jQuery(function initDrop($) {
     $filelist.append($li);
   }
   function updateFilelist() {
-    api.listFiles(function listFilesResult(result, msg) {
+    api.listFiles(function listFilesResult(result, errorInfo) {
       if (!result) {
-        alert(msg || 'Unable to retrieve file list.');
+        if (errorInfo) {
+          alert('The server returned the following error response:\n\n' +
+            errorInfo.code + ':' + errorInfo.message);
+        } else {
+          alert('Unable to retrieve file list.');
+        }
         return;
       }
 
@@ -152,11 +158,16 @@ jQuery(function initDrop($) {
     });
   }
 
-  queueUpload.post_name = 'file';
-  queueUpload.url = './api/drop.php';
-
   queueUpload.onuploadstart = function uploadstarted(file, xhr) {
     $body.addClass('uploading');
+
+    var uri = '/' + file.name;
+    queueUpload.headers = api.getAWSAuthorizationInfo('PUT', uri, {
+      'Content-Type': file.type
+    });
+    queueUpload.headers['Content-Type'] = file.type;
+    queueUpload.headers['Content-Length'] = file.size;
+    queueUpload.url = api.getAWSBucketObjectURL(uri);
   };
 
   // When there is a progress we will update the progress
@@ -169,31 +180,35 @@ jQuery(function initDrop($) {
   // When upload is completed we'll process the result from server
   // and decide if we want to continue the upload.
   queueUpload.onuploadcomplete = function uploadcompleted(file, xhr) {
-    if (xhr.status !== 200) {
-      alert('Upload failed!');
-      return false;
-    }
-
     $body.removeClass('uploading');
+
+    queueUpload.headers = {};
+    queueUpload.url = '';
 
     updateStatus();
 
-    var data;
-    try {
-      data = JSON.parse(xhr.responseText);
-    } catch (e) { }
+    var xmlDoc = xhr.responseXML;
+    if (xmlDoc) {
+      var errorInfo = api.getAWSErrorInfo(xmlDoc);
+      if (errorInfo) {
+        alert('The server returned the following error response:\n\n' +
+          errorInfo.code + ':' + errorInfo.message);
 
-    if (!data) {
-      alert('Server error!');
+        return false;
+      } else if (xhr.status !== 200) {
+        alert('Unknown server error.');
+
+        return;
+      }
+    }
+
+    if (xhr.status !== 200) {
+      alert('Unknown server error.');
+
       return false;
     }
 
-    if (data.error || !data.filename) {
-      alert('Upload Error: ' + (data.error || 'Unknown error'));
-      return false;
-    }
-
-    addFileToList(data.filename);
+    addFileToList(file.name);
 
     return true;
   };

@@ -54,13 +54,15 @@ DropAPI.prototype = {
     );
   },
 
-  getAWSAuthorizationInfo: function ds_getAWSAuthorizationInfo(method, uri) {
+  getAWSAuthorizationInfo: function ds_getAWSAuthorizationInfo(method, uri,
+                                                               headers) {
     var awsConfig = this.awsConfig;
+    var headers = headers || {};
     var dateString = (new Date()).toUTCString();
     var stringToSign =
       /* HTTP-Verb */ method + '\n' +
-      /* Content-MD5 */ '\n' +
-      /* Content-Type */ '\n' +
+      /* Content-MD5 */ (headers['Content-MD5'] || '') + '\n' +
+      /* Content-Type */ (headers['Content-Type'] || '') + '\n' +
       /* Date */ '\n' +
       /* CanonicalizedAmzHeaders */ 'x-amz-date:' + dateString + '\n' +
       /* CanonicalizedResource */ '/' +
@@ -82,6 +84,18 @@ DropAPI.prototype = {
       awsConfig.bucketName + '.s3.amazonaws.com' + uri;
 
     return url;
+  },
+
+  getAWSErrorInfo: function ds_getAWSErrorInfo(xmlDoc) {
+    var xmlRoot = xmlDoc.firstChild;
+    if (xmlRoot.nodeName !== 'Error')
+      return '';
+    // Example response can be found at
+    // http://docs.aws.amazon.com/AmazonS3/latest/API/ErrorResponses.html#RESTErrorResponses
+    return {
+      code: xmlRoot.getElementsByTagName('Code')[0].textContent,
+      message: xmlRoot.getElementsByTagName('Message')[0].textContent
+    };
   },
 
   // list files on the server
@@ -107,21 +121,16 @@ DropAPI.prototype = {
         return;
       }
 
-      var xmlRoot = xmlDoc.firstChild;
-      if (xmlRoot.nodeName === 'Error') {
-        // Example response can be found at
-        // http://docs.aws.amazon.com/AmazonS3/latest/API/ErrorResponses.html#RESTErrorResponses
-        var msg = xmlRoot.getElementsByTagName('Code')[0].textContent + ':' +
-          xmlRoot.getElementsByTagName('Message')[0].textContent;
-
-        callback.call(this, false, msg);
+      var errorInfo = this.getAWSErrorInfo(xmlDoc);
+      if (errorInfo) {
+        callback.call(this, false, errorInfo);
 
         return;
       }
 
       // Example response can be found at
       // http://docs.aws.amazon.com/AmazonS3/latest/API/RESTBucketGET.html
-      var filenamesNodeList = xmlRoot.getElementsByTagName('Key');
+      var filenamesNodeList = xmlDoc.firstChild.getElementsByTagName('Key');
       var filenames =
         Array.prototype.map.call(filenamesNodeList, function(filename) {
           return filename.textContent;
