@@ -23,6 +23,7 @@ DropAPI.prototype = {
         this.spreadsheetKey + '/1/private/basic',
       {
         'min-col': 2,
+        'max-col': 2,
         'alt': 'json',
         'access_token': this.accessToken
       }
@@ -37,9 +38,10 @@ DropAPI.prototype = {
 
         var awsConfig = this.awsConfig = {};
 
-        awsConfig.bucketURL = result['feed']['entry'][0]['content']['$t'];
-        awsConfig.s3AccessKey = result['feed']['entry'][1]['content']['$t'];
-        awsConfig.s3secret = result['feed']['entry'][2]['content']['$t'];
+        awsConfig.bucketName = result['feed']['entry'][0]['content']['$t'];
+        awsConfig.accessKeyId = result['feed']['entry'][1]['content']['$t'];
+        awsConfig.secretAccessKey = result['feed']['entry'][2]['content']['$t'];
+        awsConfig.protocol = result['feed']['entry'][3]['content']['$t'];
 
         if (callback)
           callback.call(this, true);
@@ -52,22 +54,82 @@ DropAPI.prototype = {
     );
   },
 
+  getAWSAuthorizationInfo: function ds_getAWSAuthorizationInfo(method, uri) {
+    var awsConfig = this.awsConfig;
+    var dateString = (new Date()).toUTCString();
+    var stringToSign =
+      /* HTTP-Verb */ method + '\n' +
+      /* Content-MD5 */ '\n' +
+      /* Content-Type */ '\n' +
+      /* Date */ '\n' +
+      /* CanonicalizedAmzHeaders */ 'x-amz-date:' + dateString + '\n' +
+      /* CanonicalizedResource */ '/' +
+        awsConfig.bucketName + uri;
+
+    var auth = 'AWS ' + awsConfig.accessKeyId + ':' +
+      CryptoJS.HmacSHA1(stringToSign, this.awsConfig.secretAccessKey)
+        .toString(CryptoJS.enc.Base64);
+
+    return {
+      'Authorization': auth,
+      'x-amz-date': dateString
+    };
+  },
+
+  getAWSBucketObjectURL: function ds_getAWSBucketObjectURL(uri) {
+    var awsConfig = this.awsConfig;
+    var url = awsConfig.protocol + '://' +
+      awsConfig.bucketName + '.s3.amazonaws.com' + uri;
+
+    return url;
+  },
+
   // list files on the server
   listFiles: function ds_listFiles(callback) {
-    var url = './api/list.php?access_token=' + this.accessToken;
-    $.getJSON(url, function gotListFilesResult(result) {
-      if (!result || result.error || !result.files) {
-        alert(result.error || 'Get file list failed.');
+    var url = this.getAWSBucketObjectURL('/');
+    var headers = this.getAWSAuthorizationInfo('GET', '/');
 
-        if (callback)
-          callback();
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url);
+
+    for (var name in headers) {
+      xhr.setRequestHeader(name, headers[name]);
+    }
+
+    xhr.onreadystatechange = function xhrStateChange(evt) {
+      if (xhr.readyState !== XMLHttpRequest.DONE)
+        return;
+
+      var xmlDoc = xhr.responseXML;
+      if (!xmlDoc) {
+        callback.call(this, false);
 
         return;
       }
 
-      if (callback)
-        callback.call(this, result.files);
-    }.bind(this));
+      var xmlRoot = xmlDoc.firstChild;
+      if (xmlRoot.nodeName === 'Error') {
+        // Example response can be found at
+        // http://docs.aws.amazon.com/AmazonS3/latest/API/ErrorResponses.html#RESTErrorResponses
+        var msg = xmlRoot.getElementsByTagName('Code')[0].textContent + ':' +
+          xmlRoot.getElementsByTagName('Message')[0].textContent;
+
+        callback.call(this, false, msg);
+
+        return;
+      }
+
+      // Example response can be found at
+      // http://docs.aws.amazon.com/AmazonS3/latest/API/RESTBucketGET.html
+      var filenamesNodeList = xmlRoot.getElementsByTagName('Key');
+      var filenames =
+        Array.prototype.map.call(filenamesNodeList, function(filename) {
+          return filename.textContent;
+        });
+
+      callback.call(this, filenames);
+    }.bind(this);
+    xhr.send();
   },
 
   // delete file on the server

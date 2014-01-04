@@ -142,11 +142,13 @@ jQuery(function initDrop($) {
     $filelist.append($li);
   }
   function updateFilelist() {
-    api.listFiles(function listFilesResult(files) {
-      if (!files)
+    api.listFiles(function listFilesResult(result, msg) {
+      if (!result) {
+        alert(msg || 'Unable to retrieve file list.');
         return;
+      }
 
-      files.forEach(addFileToList);
+      result.forEach(addFileToList);
     });
   }
 
@@ -209,11 +211,12 @@ jQuery(function initDrop($) {
         });
         return;
       }
+
+      updateFilelist();
     });
 
     $body.removeClass('auth_needed');
     updateLoginStatus();
-    updateFilelist();
   };
   go2.onlogout = function loggedOut() {
     api.accessToken = undefined;
