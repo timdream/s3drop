@@ -66,7 +66,7 @@ DropAPI.prototype = {
       /* Date */ '\n' +
       /* CanonicalizedAmzHeaders */ 'x-amz-date:' + dateString + '\n' +
       /* CanonicalizedResource */ '/' +
-        awsConfig.bucketName + uri;
+        awsConfig.bucketName + encodeURI(uri);
 
     var auth = 'AWS ' + awsConfig.accessKeyId + ':' +
       CryptoJS.HmacSHA1(stringToSign, this.awsConfig.secretAccessKey)
