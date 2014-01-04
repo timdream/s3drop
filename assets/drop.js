@@ -143,7 +143,9 @@ jQuery(function initDrop($) {
     $filelist.append($li);
   }
   function updateFilelist() {
+    $filelist.append($('<li/>').text('...'));
     api.listFiles(function listFilesResult(result, errorInfo) {
+      $filelist.empty();
       if (!result) {
         if (errorInfo) {
           alert('The server returned the following error response:\n\n' +
