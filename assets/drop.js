@@ -17,7 +17,7 @@ jQuery(function initDrop($) {
   queueUpload.HTTP_METHOD = 'PUT';
   api.spreadsheetKey = GOOGLE_SPREADSHEET_KEY;
 
-  var linkExpireTime;
+  var downloadlinkExpireDate;
 
   // Allow dropping file to container
   $('#file_container').on('drop', function dropFile(evt) {
@@ -131,7 +131,7 @@ jQuery(function initDrop($) {
   function addFileToList(filename) {
     var $li = $('<li/>');
     var href = api.getAWSSignedBucketObjectURL('/' + filename,
-                                               linkExpireTime);
+                                               downloadlinkExpireDate);
     $li.append($('<a target="_blank" />').attr('href', href).text(filename));
 
     $li.append(' [')
@@ -147,7 +147,10 @@ jQuery(function initDrop($) {
     api.listFiles(function listFilesResult(result, errorInfo) {
       $filelist.empty();
       if (!result) {
-        if (errorInfo) {
+        if (errorInfo && errorInfo.code === 'RequestTimeTooSkewed') {
+          // Try again since the awsTimeOffset should have been updated now.
+          api.listFiles(listFilesResult);
+        } else if (errorInfo) {
           alert('The server returned the following error response:\n\n' +
             errorInfo.code + ':' + errorInfo.message);
         } else {
@@ -229,11 +232,11 @@ jQuery(function initDrop($) {
         return;
       }
 
-      linkExpireTime =
-        Math.floor((new Date()).getTime() / 1000) + LINK_EXPIRES_IN;
-
       updateFilelist();
     });
+
+    downloadlinkExpireDate =
+      new Date((new Date()).getTime() + LINK_EXPIRES_IN * 1000);
 
     $body.removeClass('auth_needed');
     updateLoginStatus();

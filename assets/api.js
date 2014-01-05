@@ -13,6 +13,8 @@ DropAPI.prototype = {
 
   awsConfig: null,
 
+  awsTimeOffset: 0,
+
   hasS3Access: function ds_hasS3Access() {
     return !!this.awsConfig;
   },
@@ -54,11 +56,27 @@ DropAPI.prototype = {
     );
   },
 
+  updateAWSTimeOffset: function ds_updateAWSTimeOffset(dateString) {
+    var currentTime = (new Date()).getTime();
+    var awsTime = (new Date(dateString)).getTime();
+
+    var offset = awsTime - currentTime;
+    if (offset > 1000)
+      this.awsTimeOffset = offset;
+  },
+
+  getAWSDate: function ds_getAWSDate() {
+    if (this.awsTimeOffset === 0) {
+      return (new Date());
+    }
+    return new Date((new Date()).getTime() + this.awsTimeOffset);
+  },
+
   getAWSAuthorizationInfo: function ds_getAWSAuthorizationInfo(method, uri,
                                                                headers) {
     var awsConfig = this.awsConfig;
     var headers = headers || {};
-    var dateString = (new Date()).toUTCString();
+    var dateString = this.getAWSDate().toUTCString();
     var stringToSign =
       /* HTTP-Verb */ method + '\n' +
       /* Content-MD5 */ (headers['Content-MD5'] || '') + '\n' +
@@ -78,8 +96,15 @@ DropAPI.prototype = {
     };
   },
 
-  getAWSSignedBucketObjectURL: function ds_getAWSSignedBucketObjectURL(uri, expires) {
+  getAWSSignedBucketObjectURL: function ds_getAWSSignedBucketObjectURL(uri, expireDate) {
     var awsConfig = this.awsConfig;
+
+    var expires;
+    if (this.awsTimeOffset === 0) {
+      expires = Math.floor(expireDate.getTime() / 1000);
+    } else {
+      expires = Math.floor((expireDate.getTime() + this.awsTimeOffset) / 1000);
+    }
     var url = this.getAWSBucketObjectURL(uri);
     var stringToSign =
       /* HTTP-Verb */ 'GET\n' +
@@ -134,6 +159,10 @@ DropAPI.prototype = {
     }
 
     xhr.onreadystatechange = function xhrStateChange(evt) {
+      if (xhr.readyState === XMLHttpRequest.HEADERS_RECEIVED) {
+        this.updateAWSTimeOffset(xhr.getResponseHeader('Date'));
+      }
+
       if (xhr.readyState !== XMLHttpRequest.DONE)
         return;
 
@@ -178,6 +207,10 @@ DropAPI.prototype = {
     }
 
     xhr.onreadystatechange = function xhrStateChange(evt) {
+      if (xhr.readyState === XMLHttpRequest.HEADERS_RECEIVED) {
+        this.updateAWSTimeOffset(xhr.getResponseHeader('Date'));
+      }
+
       if (xhr.readyState !== XMLHttpRequest.DONE)
         return;
 
