@@ -57,6 +57,9 @@ DropAPI.prototype = {
   },
 
   updateAWSTimeOffset: function ds_updateAWSTimeOffset(dateString) {
+    if (!dateString)
+      return;
+
     var currentTime = (new Date()).getTime();
     var awsTime = (new Date(dateString)).getTime();
 
