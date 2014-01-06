@@ -96,7 +96,7 @@ DropAPI.prototype = {
     };
   },
 
-  getAWSSignedBucketObjectURL: function ds_getAWSSignedBucketObjectURL(uri, expireDate) {
+  getAWSSignedObjectDownloadURL: function ds_getAWSSignedObjectDownloadURL(uri, expireDate) {
     var awsConfig = this.awsConfig;
 
     var expires;
@@ -105,7 +105,7 @@ DropAPI.prototype = {
     } else {
       expires = Math.floor((expireDate.getTime() + this.awsTimeOffset) / 1000);
     }
-    var url = this.getAWSBucketObjectURL(uri);
+    var url = this.getAWSBucketObjectURL(uri, awsConfig.protocol);
     var stringToSign =
       /* HTTP-Verb */ 'GET\n' +
       /* Content-MD5 */ '\n' +
@@ -126,9 +126,10 @@ DropAPI.prototype = {
     return url;
   },
 
-  getAWSBucketObjectURL: function ds_getAWSBucketObjectURL(uri) {
+  getAWSBucketObjectURL: function ds_getAWSBucketObjectURL(uri, protocol) {
     var awsConfig = this.awsConfig;
-    var url = awsConfig.protocol + '://' +
+    protocol = protocol || 'https';
+    var url = protocol + '://' +
       awsConfig.bucketName + '.s3.amazonaws.com' + uri;
 
     return url;

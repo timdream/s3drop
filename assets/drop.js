@@ -130,8 +130,8 @@ jQuery(function initDrop($) {
   });
   function addFileToList(filename) {
     var $li = $('<li/>');
-    var href = api.getAWSSignedBucketObjectURL('/' + filename,
-                                               downloadlinkExpireDate);
+    var href = api.getAWSSignedObjectDownloadURL('/' + filename,
+                                                 downloadlinkExpireDate);
     $li.append($('<a target="_blank" />').attr('href', href).text(filename));
 
     $li.append(' [')
