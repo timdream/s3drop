@@ -7,15 +7,26 @@ jQuery(function initDrop($) {
 
   var queueUpload = new QueueUpload();
   var api = new DropAPI();
-  var go2 = null;
+  var go2 = new GO2({
+    clientId: GOOGLE_OAUTH2_CLIENT_ID,
+    scope: [
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://spreadsheets.google.com/feeds/']
+  });
+
+  queueUpload.HTTP_METHOD = 'PUT';
+  api.spreadsheetKey = GOOGLE_SPREADSHEET_KEY;
+
+  var downloadlinkExpireDate;
 
   // Allow dropping file to container
   $('#file_container').on('drop', function dropFile(evt) {
     evt.preventDefault();
     $body.removeClass('dragover');
 
-    if (!api.config.disable_login && !go2.getAccessToken()) {
-      alert('You need to login first.');
+    if (!go2.getAccessToken() || !api.hasS3Access()) {
+      alert('You need to login with the proper Google account first.');
+
       return;
     }
 
@@ -40,8 +51,8 @@ jQuery(function initDrop($) {
 
   // Allow user to select files from the control
   $('#files').on('change', function changeFiles(evt) {
-    if (!api.config.disable_login && !go2.getAccessToken()) {
-      alert('You need to login first.');
+    if (!go2.getAccessToken() || !api.hasS3Access()) {
+      alert('You need to login with the proper Google account first.');
 
       this.form.reset();
       return;
@@ -97,9 +108,6 @@ jQuery(function initDrop($) {
 
   // List of files and base href of the link to file
   var $filelist = $('#filelist');
-  var baseHref = window.location.href.substr(0,
-                                             window.location.href
-                                             .lastIndexOf('/') + 1);
 
   // Delete file when user click on a delete link
   $filelist.on('click', 'a[rel="delete"]', function clickDeleteFile(evt) {
@@ -122,33 +130,49 @@ jQuery(function initDrop($) {
   });
   function addFileToList(filename) {
     var $li = $('<li/>');
-    $li.append($('<a/>').attr('href', baseHref + 'files/' + filename)
-                        .text(filename));
+    var href = api.getAWSSignedObjectDownloadURL('/' + filename,
+                                                 downloadlinkExpireDate);
+    $li.append($('<a target="_blank" />').attr('href', href).text(filename));
 
-    if (!api.config.disable_login) {
-      $li.append(' [')
-        .append($('<a rel="delete" href="#" />')
-          .data('filename', filename)
-          .text('delete'))
-        .append(']');
-    }
+    $li.append(' [')
+      .append($('<a rel="delete" href="#" />')
+        .data('filename', filename)
+        .text('delete'))
+      .append(']');
 
     $filelist.append($li);
   }
   function updateFilelist() {
-    api.listFiles(function listFilesResult(files) {
-      if (!files)
+    $filelist.append($('<li/>').text('...'));
+    api.listFiles(function listFilesResult(result, errorInfo) {
+      $filelist.empty();
+      if (!result) {
+        if (errorInfo && errorInfo.code === 'RequestTimeTooSkewed') {
+          // Try again since the awsTimeOffset should have been updated now.
+          api.listFiles(listFilesResult);
+        } else if (errorInfo) {
+          alert('The server returned the following error response:\n\n' +
+            errorInfo.code + ':' + errorInfo.message);
+        } else {
+          alert('Unable to retrieve file list.');
+        }
         return;
+      }
 
-      files.forEach(addFileToList);
+      result.forEach(addFileToList);
     });
   }
 
-  queueUpload.post_name = 'file';
-  queueUpload.url = './api/drop.php';
-
   queueUpload.onuploadstart = function uploadstarted(file, xhr) {
     $body.addClass('uploading');
+
+    var uri = '/' + file.name;
+    queueUpload.headers = api.getAWSAuthorizationInfo('PUT', uri, {
+      'Content-Type': file.type
+    });
+    queueUpload.headers['Content-Type'] = file.type;
+    queueUpload.headers['Content-Length'] = file.size;
+    queueUpload.url = api.getAWSBucketObjectURL(uri);
   };
 
   // When there is a progress we will update the progress
@@ -161,84 +185,86 @@ jQuery(function initDrop($) {
   // When upload is completed we'll process the result from server
   // and decide if we want to continue the upload.
   queueUpload.onuploadcomplete = function uploadcompleted(file, xhr) {
-    if (xhr.status !== 200) {
-      alert('Upload failed!');
-      return false;
-    }
-
     $body.removeClass('uploading');
+
+    queueUpload.headers = {};
+    queueUpload.url = '';
 
     updateStatus();
 
-    var data;
-    try {
-      data = JSON.parse(xhr.responseText);
-    } catch (e) { }
+    var xmlDoc = xhr.responseXML;
+    if (xmlDoc) {
+      var errorInfo = api.getAWSErrorInfo(xmlDoc);
+      if (errorInfo) {
+        alert('The server returned the following error response:\n\n' +
+          errorInfo.code + ':' + errorInfo.message);
 
-    if (!data) {
-      alert('Server error!');
+        return false;
+      } else if (xhr.status !== 200) {
+        alert('Unknown server error.');
+
+        return;
+      }
+    }
+
+    if (xhr.status !== 200) {
+      alert('Unknown server error.');
+
       return false;
     }
 
-    if (data.error || !data.filename) {
-      alert('Upload Error: ' + (data.error || 'Unknown error'));
-      return false;
-    }
-
-    addFileToList(data.filename);
+    addFileToList(file.name);
 
     return true;
   };
 
-  api.getConfig(function gotConfig(config) {
-    if (!config)
-      return;
+  go2.onlogin = function loggedIn(token) {
+    api.accessToken = token;
+    api.getConfig(function gotConfig(hasAccess) {
+      if (!hasAccess) {
+        alert('Your Google account has no access to the spreadsheet ' +
+          'specified.\n' +
+          'This may be an error, or you may have no access to this service.');
 
-    $body.removeClass('uninit');
+        setTimeout(function() {
+          go2.logout();
+        });
+        return;
+      }
 
-    // There is no pseudo-class like :from() to target for
-    // the animation when leaving 'uninit' state.
-    // We will have to introduce a new state here.
-    $body.addClass('leave-uninit');
-    // We should be using animationend & webkitAnimationEnd here, however
-    // the event will never be triggered if the animation is interrupted.
-    setTimeout(function animationend() {
-      $body.removeClass('leave-uninit');
-    }, 1010);
+      updateFilelist();
+    });
 
-    queueUpload.max_file_size = config.max_file_size;
+    downloadlinkExpireDate =
+      new Date((new Date()).getTime() + LINK_EXPIRES_IN * 1000);
 
-    // Login not required, remove login label
-    if (config.disable_login) {
-      $login.remove();
-
-      return;
-    }
+    $body.removeClass('auth_needed');
+    updateLoginStatus();
+  };
+  go2.onlogout = function loggedOut() {
+    api.accessToken = undefined;
+    api.awsConfig = undefined;
 
     $body.addClass('auth_needed');
+    $filelist.empty();
+    $login_status.empty();
+  };
 
-    // Initialize GO2
-    go2 = new GO2({
-      clientId: config.google_oauth2_client_id,
-      scope: 'https://www.googleapis.com/auth/userinfo.email'
-    });
-    go2.onlogin = function loggedIn(token) {
-      queueUpload.form_data.access_token = token;
-      api.accessToken = token;
+  // Attempt to login silently.
+  go2.login(false, true);
 
-      $body.removeClass('auth_needed');
-      updateLoginStatus();
-      updateFilelist();
-    };
-    go2.onlogout = function loggedOut() {
-      queueUpload.form_data.access_token = undefined;
+  // Start the transition
+  $body.removeClass('uninit');
 
-      $body.addClass('auth_needed');
-      $filelist.empty();
-      $login_status.empty();
-    };
+  // There is no pseudo-class like :from() to target for
+  // the animation when leaving 'uninit' state.
+  // We will have to introduce a new state here.
+  $body.addClass('leave-uninit');
+  // We should be using animationend & webkitAnimationEnd here, however
+  // the event will never be triggered if the animation is interrupted.
+  setTimeout(function animationend() {
+    $body.removeClass('leave-uninit');
+  }, 1010);
 
-    // Attempt to login silently.
-    go2.login(false, true);
-  });
+  $body.addClass('auth_needed');
 });

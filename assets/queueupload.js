@@ -14,11 +14,19 @@ QueueUpload.prototype = {
   // falsey value to disable the check.
   max_file_size: 0,
 
+  // Use PUT or POST for uploading
+  HTTP_METHOD: 'POST',
+
   // key: values to accompany the file when upload.
+  // Only applicable when the HTTP_METHOD is POST.
   form_data: {},
 
   // post field name to use for the file.
+  // Only applicable when the HTTP_METHOD is POST.
   post_name: 'file',
+
+  // headers to accompany the file when upload.
+  headers: {},
 
   // url to upload to.
   url: '',
@@ -64,18 +72,8 @@ QueueUpload.prototype = {
 
   // Private startUpload()
   _startUpload: function _startUpload() {
-    var formData = new FormData(),
-      file = this._queue.shift(),
+    var file = this._queue.shift(),
       xhr = new XMLHttpRequest();
-
-    formData.append(this.post_name, file);
-
-    for (var name in this.form_data) {
-      formData.append(name, this.form_data[name]);
-    }
-
-    xhr.open('POST', this.url);
-    this._uploading = true;
 
     var callbackResult;
     if (this.onuploadstart)
@@ -85,6 +83,9 @@ QueueUpload.prototype = {
       this._startUpload();
       return;
     }
+
+    xhr.open(this.HTTP_METHOD, this.url);
+    this._uploading = true;
 
     xhr.upload.onprogress = function xhrProgress(evt) {
       if (this.onuploadprogress)
@@ -106,6 +107,21 @@ QueueUpload.prototype = {
         this._startUpload();
     }.bind(this);
 
-    xhr.send(formData);
+    for (var name in this.headers) {
+      xhr.setRequestHeader(name, this.headers[name]);
+    }
+
+    if (this.HTTP_METHOD === 'POST') {
+      var formData = new FormData();
+      formData.append(this.post_name, file);
+
+      for (var name in this.form_data) {
+        formData.append(name, this.form_data[name]);
+      }
+
+      xhr.send(formData);
+    } else {
+      xhr.send(file);
+    }
   }
 };
