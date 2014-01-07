@@ -187,6 +187,8 @@ jQuery(function initDrop($) {
   queueUpload.onuploadcomplete = function uploadcompleted(file, xhr) {
     $body.removeClass('uploading');
 
+    api.updateAWSTimeOffset(xhr.getResponseHeader('Date'));
+
     queueUpload.headers = {};
     queueUpload.url = '';
 
