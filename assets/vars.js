@@ -1,0 +1,3 @@
+var GOOGLE_OAUTH2_CLIENT_ID = '992365961259.apps.googleusercontent.com';
+var GOOGLE_SPREADSHEET_KEY = '0AtZAnc7MwjgldFpPRUZ4RG9rdDNLZ3NuRU9MV3pCVFE';
+var LINK_EXPIRES_IN = 60 * 60 * 24 * 7; // 1 week
