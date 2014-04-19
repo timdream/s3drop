@@ -1,3 +1,0 @@
-Options -ExecCGI -Indexes
-AddHandler cgi-script .php .pl .py .jsp .asp .htm .shtml .sh .cgi
-Header set Content-Disposition attachment
