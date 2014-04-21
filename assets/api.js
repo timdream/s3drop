@@ -7,6 +7,7 @@ var DropAPI = function DropAPI() {
 };
 DropAPI.prototype = {
   GOOGLE_SPREADSHEET_API_URL: 'https://spreadsheets.google.com/',
+  AWS_BUCKET_URL: '%protocol://$bucketname.s3.amazonaws.com%uri',
 
   // Google OAuth2 token
   accessToken: '',
@@ -131,9 +132,10 @@ DropAPI.prototype = {
 
   getAWSBucketObjectURL: function ds_getAWSBucketObjectURL(uri, protocol) {
     var awsConfig = this.awsConfig;
-    protocol = protocol || 'https';
-    var url = protocol + '://' +
-      awsConfig.bucketName + '.s3.amazonaws.com' + uri;
+    url = this.AWS_BUCKET_URL
+      .replace('%protocol', protocol || 'https')
+      .replace('%bucketname', awsConfig.bucketName)
+      .replace('%uri', uri);
 
     return url;
   },
