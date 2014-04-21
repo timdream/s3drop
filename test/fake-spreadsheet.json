@@ -1,0 +1,182 @@
+{
+  "version": "1.0",
+  "encoding": "UTF-8",
+  "feed": {
+    "xmlns": "http://www.w3.org/2005/Atom",
+    "xmlns$openSearch": "http://a9.com/-/spec/opensearchrss/1.0/",
+    "xmlns$gs": "http://schemas.google.com/spreadsheets/2006",
+    "xmlns$batch": "http://schemas.google.com/gdata/batch",
+    "id": {
+      "$t": "https://spreadsheets.google.com/feeds/cells/FAKE_SPREADSHEET_KEY/1/private/basic"
+    },
+    "updated": {
+      "$t": "2014-04-09T11:28:28.447Z"
+    },
+    "category": [
+      {
+        "scheme": "http://schemas.google.com/spreadsheets/2006",
+        "term": "http://schemas.google.com/spreadsheets/2006#cell"
+      }
+    ],
+    "title": {
+      "type": "text",
+      "$t": "Sheet1"
+    },
+    "link": [
+      {
+        "rel": "alternate",
+        "type": "text/html",
+        "href": "https://spreadsheets.google.com/ccc?key=FAKE_SPREADSHEET_KEY"
+      },
+      {
+        "rel": "http://schemas.google.com/g/2005#feed",
+        "type": "application/atom+xml",
+        "href": "https://spreadsheets.google.com/feeds/cells/FAKE_SPREADSHEET_KEY/1/private/basic"
+      },
+      {
+        "rel": "http://schemas.google.com/g/2005#batch",
+        "type": "application/atom+xml",
+        "href": "https://spreadsheets.google.com/feeds/cells/FAKE_SPREADSHEET_KEY/1/private/basic/batch"
+      },
+      {
+        "rel": "self",
+        "type": "application/atom+xml",
+        "href": "https://spreadsheets.google.com/feeds/cells/FAKE_SPREADSHEET_KEY/1/private/basic?alt=json&min-col=2&max-col=2"
+      }
+    ],
+    "author": [
+      {
+        "name": {
+          "$t": "timdream"
+        },
+        "email": {
+          "$t": "timdream@gmail.com"
+        }
+      }
+    ],
+    "openSearch$totalResults": {
+      "$t": "4"
+    },
+    "openSearch$startIndex": {
+      "$t": "1"
+    },
+    "entry": [
+      {
+        "id": {
+          "$t": "https://spreadsheets.google.com/feeds/cells/FAKE_SPREADSHEET_KEY/1/private/basic/R1C2"
+        },
+        "updated": {
+          "$t": "2014-04-09T11:28:28.447Z"
+        },
+        "category": [
+          {
+            "scheme": "http://schemas.google.com/spreadsheets/2006",
+            "term": "http://schemas.google.com/spreadsheets/2006#cell"
+          }
+        ],
+        "title": {
+          "type": "text",
+          "$t": "B1"
+        },
+        "content": {
+          "type": "text",
+          "$t": "FAKE_BUCKET_NAME"
+        },
+        "link": [
+          {
+            "rel": "self",
+            "type": "application/atom+xml",
+            "href": "https://spreadsheets.google.com/feeds/cells/FAKE_SPREADSHEET_KEY/1/private/basic/R1C2"
+          }
+        ]
+      },
+      {
+        "id": {
+          "$t": "https://spreadsheets.google.com/feeds/cells/FAKE_SPREADSHEET_KEY/1/private/basic/R2C2"
+        },
+        "updated": {
+          "$t": "2014-04-09T11:28:28.447Z"
+        },
+        "category": [
+          {
+            "scheme": "http://schemas.google.com/spreadsheets/2006",
+            "term": "http://schemas.google.com/spreadsheets/2006#cell"
+          }
+        ],
+        "title": {
+          "type": "text",
+          "$t": "B2"
+        },
+        "content": {
+          "type": "text",
+          "$t": "FAKE_AWS_KEY"
+        },
+        "link": [
+          {
+            "rel": "self",
+            "type": "application/atom+xml",
+            "href": "https://spreadsheets.google.com/feeds/cells/FAKE_SPREADSHEET_KEY/1/private/basic/R2C2"
+          }
+        ]
+      },
+      {
+        "id": {
+          "$t": "https://spreadsheets.google.com/feeds/cells/FAKE_SPREADSHEET_KEY/1/private/basic/R3C2"
+        },
+        "updated": {
+          "$t": "2014-04-09T11:28:28.447Z"
+        },
+        "category": [
+          {
+            "scheme": "http://schemas.google.com/spreadsheets/2006",
+            "term": "http://schemas.google.com/spreadsheets/2006#cell"
+          }
+        ],
+        "title": {
+          "type": "text",
+          "$t": "B3"
+        },
+        "content": {
+          "type": "text",
+          "$t": "FAKE_AWS_SECRET"
+        },
+        "link": [
+          {
+            "rel": "self",
+            "type": "application/atom+xml",
+            "href": "https://spreadsheets.google.com/feeds/cells/FAKE_SPREADSHEET_KEY/1/private/basic/R3C2"
+          }
+        ]
+      },
+      {
+        "id": {
+          "$t": "https://spreadsheets.google.com/feeds/cells/FAKE_SPREADSHEET_KEY/1/private/basic/R4C2"
+        },
+        "updated": {
+          "$t": "2014-04-09T11:28:28.447Z"
+        },
+        "category": [
+          {
+            "scheme": "http://schemas.google.com/spreadsheets/2006",
+            "term": "http://schemas.google.com/spreadsheets/2006#cell"
+          }
+        ],
+        "title": {
+          "type": "text",
+          "$t": "B4"
+        },
+        "content": {
+          "type": "text",
+          "$t": "https"
+        },
+        "link": [
+          {
+            "rel": "self",
+            "type": "application/atom+xml",
+            "href": "https://spreadsheets.google.com/feeds/cells/FAKE_SPREADSHEET_KEY/1/private/basic/R4C2"
+          }
+        ]
+      }
+    ]
+  }
+}
