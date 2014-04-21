@@ -47,16 +47,6 @@ test('Upload one file', function () {
     // Add upload object to fakeXhr
     xhrInstance.upload = {};
     requests.push(xhrInstance);
-    setTimeout(function() {
-      xhrInstance.upload.onprogress({
-        type: 'progress',
-        loaded: fakeFileList[0].size / 2,
-        total: fakeFileList[0].size + 123
-      });
-    }, 10);
-    setTimeout(function() {
-      xhrInstance.respond(200, {}, 'body');
-    }, 10);
   };
 
   stop();
@@ -80,6 +70,14 @@ test('Upload one file', function () {
   };
   queueUpload.addQueue(fakeFileList);
   equal(requests.length, 1, 'Made one request');
+
+  requests[0].upload.onprogress({
+    type: 'progress',
+    loaded: fakeFileList[0].size / 2,
+    total: fakeFileList[0].size + 123
+  });
+
+  requests[0].respond(200, {}, 'body');
 });
 
 test('Upload 2 files', function () {
@@ -99,20 +97,10 @@ test('Upload 2 files', function () {
     // Add upload object to fakeXhr
     xhrInstance.upload = {};
     requests.push(xhrInstance);
-    setTimeout(function() {
-      xhrInstance.upload.onprogress({
-        type: 'progress',
-        loaded: fakeFileList[i].size / 2,
-        total: fakeFileList[i].size + 123
-      });
-    }, 10);
-    setTimeout(function() {
-      xhrInstance.respond(200, {}, 'body');
-    }, 10);
   };
   stop();
 
-  expect(17);
+  expect(18);
   queueUpload.onuploadprogress = function (file, xhr, loaded, total) {
     equal(this, queueUpload, 'callback called with correct context');
     strictEqual(file, fakeFileList[i], 'Got file referenced');
@@ -135,4 +123,22 @@ test('Upload 2 files', function () {
   };
   queueUpload.addQueue(fakeFileList);
   equal(requests.length, 1, 'Made one request');
+
+  requests[0].upload.onprogress({
+    type: 'progress',
+    loaded: fakeFileList[i].size / 2,
+    total: fakeFileList[i].size + 123
+  });
+
+  requests[0].respond(200, {}, 'body');
+
+  equal(requests.length, 2, 'Made another request');
+
+  requests[1].upload.onprogress({
+    type: 'progress',
+    loaded: fakeFileList[i].size / 2,
+    total: fakeFileList[i].size + 123
+  });
+
+  requests[1].respond(200, {}, 'body');
 });
