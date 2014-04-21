@@ -1,0 +1,282 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<style>
+*{margin:0;padding:0;}
+body {
+	font:13.34px helvetica,arial,freesans,clean,sans-serif;
+	color:black;
+	line-height:1.4em;
+	background-color: #F8F8F8;
+	padding: 0.7em;
+}
+p {
+	margin:1em 0;
+	line-height:1.5em;
+}
+table {
+	font-size:inherit;
+	font:100%;
+	margin:1em;
+}
+table th{border-bottom:1px solid #bbb;padding:.2em 1em;}
+table td{border-bottom:1px solid #ddd;padding:.2em 1em;}
+input[type=text],input[type=password],input[type=image],textarea{font:99% helvetica,arial,freesans,sans-serif;}
+select,option{padding:0 .25em;}
+optgroup{margin-top:.5em;}
+pre,code{font:12px Monaco,"Courier New","DejaVu Sans Mono","Bitstream Vera Sans Mono",monospace;}
+pre {
+	margin:1em 0;
+	font-size:12px;
+	background-color:#eee;
+	border:1px solid #ddd;
+	padding:5px;
+	line-height:1.5em;
+	color:#444;
+	overflow:auto;
+	-webkit-box-shadow:rgba(0,0,0,0.07) 0 1px 2px inset;
+	-webkit-border-radius:3px;
+	-moz-border-radius:3px;border-radius:3px;
+}
+pre code {
+	padding:0;
+	font-size:12px;
+	background-color:#eee;
+	border:none;
+}
+code {
+	font-size:12px;
+	background-color:#f8f8ff;
+	color:#444;
+	padding:0 .2em;
+	border:1px solid #dedede;
+}
+img{border:0;max-width:100%;}
+abbr{border-bottom:none;}
+a{color:#4183c4;text-decoration:none;}
+a:hover{text-decoration:underline;}
+a code,a:link code,a:visited code{color:#4183c4;}
+h2,h3{margin:1em 0;}
+h1,h2,h3,h4,h5,h6{border:0;}
+h1{font-size:170%;border-top:4px solid #aaa;padding-top:.5em;margin-top:1.5em;}
+h1:first-child{margin-top:0;padding-top:.25em;border-top:none;}
+h2{font-size:150%;margin-top:1.5em;border-top:4px solid #e0e0e0;padding-top:.5em;}
+h3{margin-top:1em;}
+hr{border:1px solid #ddd;}
+ul{margin:1em 0 1em 2em;}
+ol{margin:1em 0 1em 2em;}
+ul li,ol li{margin-top:.5em;margin-bottom:.5em;}
+ul ul,ul ol,ol ol,ol ul{margin-top:0;margin-bottom:0;}
+blockquote{margin:1em 0;border-left:5px solid #ddd;padding-left:.6em;color:#555;}
+dt{font-weight:bold;margin-left:1em;}
+dd{margin-left:2em;margin-bottom:1em;}
+@media screen and (min-width: 768px) {
+    body {
+        width: 748px;
+        margin:10px auto;
+    }
+}
+
+/* Tweaks */
+
+input, textarea {
+  font-family: monospace;
+  font-size: 1em;
+}
+
+button {
+  font-size: 1.2em;
+}
+
+
+</style>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+  <script defer type="text/javascript" src="./assets/go2/src/google-oauth2.js"></script>
+  <script defer type="text/javascript" src="./assets/queueupload.js"></script>
+  <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/hmac-sha1.js"></script>
+  <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/components/enc-base64-min.js"></script>
+  <script defer type="text/javascript" src="./assets/vars.js"></script>
+  <script defer type="text/javascript" src="./assets/api.js"></script>
+  <script defer type="text/javascript" src="./assets/install.js"></script>
+<title>s3drop installation helper</title>
+
+</head>
+<body>
+
+<!-- Copied from MOU -->
+
+<h1>s3drop installation helper</h1>
+
+<p>This document contains instructions and live tests for you to set the service up.</p>
+
+<div id="no-script">
+
+<p><strong>Note: This page will be interactive if you open it from the location you intend to host. It's currently static.</strong></p>
+
+</div>
+
+
+<h2>Prerequisite</h2>
+
+<ol>
+<li><p>Choose a Amazon S3 bucket name: <input id="bucket-name" value="my-bucket"></p>
+
+<p>Do not contain any dot (<code>.</code>) to avoid HTTPS error.</p></li>
+<li><p>Host the pages somewhere on the web: <input id="url" size="40" type="url" value="https://mywebsite.com/s3drop/"></p>
+
+<p>Serve the pages over HTTPS is preferable (e.g. another bucket) to ensure better security and privacy.</p></li>
+<li><p>The origin of the webpage will be: <code><output for="origin">https://mywebsite.com</output></code> (without trailing slash)</p></li>
+</ol>
+
+
+<h2>Amazon S3 and IAM configuration</h2>
+
+<ol>
+<li>Go to <a href="https://console.aws.amazon.com/s3/home">S3 Management Console</a></li>
+<li>Create a bucket with the name <code><output for="bucket-name">&lt;bucket-name&gt;</output></code></li>
+<li><p>Paste the following CORS Configuration</p>
+
+<p><pre>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;CORSConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/"&gt;
+ &lt;CORSRule&gt;
+     &lt;AllowedOrigin&gt;<output for="origin">https://mywebsite.com</output>&lt;/AllowedOrigin&gt;
+     &lt;AllowedMethod&gt;GET&lt;/AllowedMethod&gt;
+     &lt;AllowedMethod&gt;PUT&lt;/AllowedMethod&gt;
+     &lt;AllowedMethod&gt;POST&lt;/AllowedMethod&gt;
+     &lt;AllowedMethod&gt;DELETE&lt;/AllowedMethod&gt;
+     &lt;AllowedHeader&gt;*&lt;/AllowedHeader&gt;
+     &lt;ExposeHeader&gt;Date&lt;/ExposeHeader&gt;
+ &lt;/CORSRule&gt;
+&lt;/CORSConfiguration&gt;
+</pre></p></li>
+<li><p>Go to <a href="https://console.aws.amazon.com/iam/home">IAM Management Console</a></p></li>
+<li><p>Create a group for the bucket, with the following policy allowing all access to the S3 bucket</p>
+
+<p><pre>{
+ "Version": "2012-10-17",
+ "Statement": [
+   {
+     "Sid": "AllowAccessToBucket",
+     "Effect": "Allow",
+     "Action": [
+       "s3:<em>"
+     ],
+     "Resource": [
+       "arn:aws:s3:::<output for="bucket-name">&lt;bucket-name&gt;</output>",
+       "arn:aws:s3:::<output for="bucket-name">&lt;bucket-name&gt;</output>/</em>"
+     ]
+   }
+ ]
+}</pre></p></li>
+<li><p>Create an user and add the user to the group</p></li>
+<li><p>Copy it's <code>Access Key Id</code> and <code>Secret Access Key</code> here:</p>
+
+<ul>
+<li>Access Key Id: <input id="access-key-id" value="&lt;access-key-id&gt;" size="20"></li>
+<li>Secret Access Key: <input id="secret-access-key" value="&lt;secret-access-key&gt;" size="40"></li>
+</ul>
+</li>
+<li><p>Test Amazon S3 access now (will result a few billed requests): <button id="aws-test">test</button></p>
+
+<p> <output for="aws-test"></output></p></li>
+</ol>
+
+
+<h2>Google OAuth2 Client</h2>
+
+<ol>
+<li>Go to <a href="https://cloud.google.com/console">Google Cloud Console</a> and create a project.</li>
+<li><p>Go to <code>APIs &amp; auth</code> > <code>Credentials</code> and click <code>Create New Client ID</code>, and create a Client ID according to information below:</p>
+
+<p><strong>Application type:</strong><br/>
+Web application</p>
+
+<p><strong>Authorized Javascript origins:</strong><br/>
+<code><output for="origin">https://mywebsite.com</output></code></p>
+
+<p><strong>Authorized redirect URI:</strong><br/>
+<code><output for="url">https://mywebsite.com/drop/</output></code></p></li>
+<li><p>Copy the Client ID here (we don't need any other information here):</p>
+
+<p><input id="google-client-id" size="60" value="&lt;google-client-id&gt;"></p></li>
+<li><p>Test OAuth2 access now: <button id="go2-test">test</button></p>
+
+<p> <output for="go2-test"></output></p></li>
+</ol>
+
+
+<h2>Google Spreadsheet</h2>
+
+<ol>
+<li><p>Create a spreadsheet with the following template</p>
+
+<table>
+<thead>
+<tr>
+<th>        </th>
+<th align="left"> A                   </th>
+<th align="left"> B</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> <strong>1</strong>  </td>
+<td align="left"> <strong>bucketName</strong>      </td>
+<td align="left"> <code><output for="bucket-name">&lt;bucket-name&gt;</output></code></td>
+</tr>
+<tr>
+<td> <strong>2</strong>  </td>
+<td align="left"> <strong>accessKeyId</strong>     </td>
+<td align="left"> <code><output for="access-key-id">&lt;access-key-id&gt;</output></code></td>
+</tr>
+<tr>
+<td> <strong>3</strong>  </td>
+<td align="left"> <strong>secretAccessKey</strong> </td>
+<td align="left"> <code><output for="secret-access-key">&lt;secret-access-key&gt;</output></code></td>
+</tr>
+<tr>
+<td> <strong>4</strong>  </td>
+<td align="left"> <strong>protocol</strong>        </td>
+<td align="left"> <code>https</code></td>
+</tr>
+</tbody>
+</table>
+
+
+<p>The labels in <strong>A</strong> column is simply for human-identifying purposes.<br/>
+You may not change the order of the rows.<br/>
+You could change the protocol to <code>http</code> to reduce security of the download links (not recommended).</p></li>
+<li><p>Share the document to whoever you wish to have the access to the S3 bucket to (upload/delete files). However, they are safely to ignore the file and preceed to the web page directly.</p>
+
+<p><strong>Important:</strong> If you remove someone from the shared list in the future, you should also refresh the IAM user credentials in IAM Management Console, and update them to the spreadsheet.</p></li>
+<li><p>Copy the key of the spreadsheet here: <input id="spreadsheet-key" size="60" value="&lt;spreadsheet-key&gt;"></p>
+
+<p>It's the letters between <code>key=</code> and <code>&amp;</code> in the URL of the "Share" dialog.</p></li>
+<li><p>Test access to the spreadsheet now: <button id="spreadsheet-test">test</button></p>
+
+<p> <output for="spreadsheet-test"></output></p></li>
+</ol>
+
+
+<h2>Site Settings</h2>
+
+<ol>
+<li><p>Create <a href="./assets/vars.js"><code>vars.js</code></a> based on the template of <a href="./assets/vars-sample.js"><code>vars-sample.js</code></a>, or, simply copy the information gathered below:</p>
+
+<p><pre>
+var GOOGLE_OAUTH2_CLIENT_ID = '<output for="google-client-id">&lt;google-client-id&gt;</output>';
+var GOOGLE_SPREADSHEET_KEY = '<output for="spreadsheet-key">&lt;spreadsheet-key&gt;</output>';
+var LINK_EXPIRES_IN = 60 * 60 * 24 * 7; // 1 week
+</pre></p></li>
+<li><p>Upload it to the hosting.</p></li>
+<li><p>Test the existence of the file now: <button id="vars-test">test</button></p>
+
+<p> <output for="vars-test"></output></p></li>
+</ol>
+
+<!-- // Copied from MOU -->
+
+</body>
+</html>
