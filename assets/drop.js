@@ -6,16 +6,29 @@ jQuery(function initDrop($) {
   var $body = $(document.body);
 
   var queueUpload = new QueueUpload();
+
   var api = new DropAPI();
+  api.CONFIG_STORE = GoogleSpreadsheetAWSS3ConfigStore;
+  api.FILE_STORE = AmazonS3FileStore;
+  api.start();
+  api.configStore.SPREADSHEET_KEY = GOOGLE_SPREADSHEET_KEY;
+  api.onconfigready = function configReady() {
+    updateFilelist();
+  };
+  api.onconfigerror = function gotConfig(hasAccess) {
+    alert('Your Google account has no access to the spreadsheet ' +
+      'specified.\n' +
+      'This may be an error, or you may have no access to this service.');
+
+    go2.logout();
+  };
+
   var go2 = new GO2({
     clientId: GOOGLE_OAUTH2_CLIENT_ID,
     scope: [
       'https://www.googleapis.com/auth/userinfo.email',
       'https://spreadsheets.google.com/feeds/']
   });
-
-  queueUpload.HTTP_METHOD = 'PUT';
-  api.spreadsheetKey = GOOGLE_SPREADSHEET_KEY;
 
   var downloadlinkExpireDate;
 
@@ -24,7 +37,7 @@ jQuery(function initDrop($) {
     evt.preventDefault();
     $body.removeClass('dragover');
 
-    if (!go2.getAccessToken() || !api.hasS3Access()) {
+    if (!go2.getAccessToken() || !api.configStore.config) {
       alert('You need to login with the proper Google account first.');
 
       return;
@@ -51,7 +64,7 @@ jQuery(function initDrop($) {
 
   // Allow user to select files from the control
   $('#files').on('change', function changeFiles(evt) {
-    if (!go2.getAccessToken() || !api.hasS3Access()) {
+    if (!go2.getAccessToken() || !api.configStore.config) {
       alert('You need to login with the proper Google account first.');
 
       this.form.reset();
@@ -118,7 +131,7 @@ jQuery(function initDrop($) {
 
     var $a = $(this);
     var $li = $a.parents('li');
-    api.deleteFile(function fileDeleteResult(result) {
+    api.fileStore.deleteFile(function fileDeleteResult(result) {
       if (result) {
         $li.remove();
       } else {
@@ -130,8 +143,8 @@ jQuery(function initDrop($) {
   });
   function addFileToList(filename) {
     var $li = $('<li/>');
-    var href = api.getAWSSignedObjectDownloadURL('/' + filename,
-                                                 downloadlinkExpireDate);
+    var href = api.fileStore.getDownloadURL('/' + filename,
+                                            downloadlinkExpireDate);
     $li.append($('<a target="_blank" />').attr('href', href).text(filename));
 
     $li.append(' [')
@@ -144,12 +157,12 @@ jQuery(function initDrop($) {
   }
   function updateFilelist() {
     $filelist.append($('<li/>').text('...'));
-    api.listFiles(function listFilesResult(result, errorInfo) {
+    api.fileStore.listFiles(function listFilesResult(result, errorInfo) {
       $filelist.empty();
       if (!result) {
         if (errorInfo && errorInfo.code === 'RequestTimeTooSkewed') {
           // Try again since the awsTimeOffset should have been updated now.
-          api.listFiles(listFilesResult);
+          api.fileStore.listFiles(listFilesResult);
         } else if (errorInfo) {
           alert('The server returned the following error response:\n\n' +
             errorInfo.code + ':' + errorInfo.message);
@@ -167,12 +180,15 @@ jQuery(function initDrop($) {
     $body.addClass('uploading');
 
     var uri = '/' + file.name;
-    queueUpload.headers = api.getAWSAuthorizationInfo('PUT', uri, {
+    var uploadInfo = api.fileStore.getUploadInfo(uri, {
       'Content-Type': file.type
     });
+
+    queueUpload.HTTP_METHOD = uploadInfo.method;
+    queueUpload.headers = uploadInfo.headers;
     queueUpload.headers['Content-Type'] = file.type;
     queueUpload.headers['Content-Length'] = file.size;
-    queueUpload.url = api.getAWSBucketObjectURL(uri);
+    queueUpload.url = uploadInfo.url;
   };
 
   // When there is a progress we will update the progress
@@ -186,31 +202,19 @@ jQuery(function initDrop($) {
   // and decide if we want to continue the upload.
   queueUpload.onuploadcomplete = function uploadcompleted(file, xhr) {
     $body.removeClass('uploading');
-
-    api.updateAWSTimeOffset(xhr.getResponseHeader('Date'));
-
     queueUpload.headers = {};
     queueUpload.url = '';
 
     updateStatus();
 
-    var xmlDoc = xhr.responseXML;
-    if (xmlDoc) {
-      var errorInfo = api.getAWSErrorInfo(xmlDoc);
-      if (errorInfo) {
+    var apiInfo = api.fileStore.handleUploadComplete(xhr);
+    if (!apiInfo.success) {
+      if (apiInfo.errorInfo) {
         alert('The server returned the following error response:\n\n' +
-          errorInfo.code + ':' + errorInfo.message);
-
-        return false;
-      } else if (xhr.status !== 200) {
+          apiInfo.errorInfo.code + ':' + apiInfo.errorInfo.message);
+      } else {
         alert('Unknown server error.');
-
-        return;
       }
-    }
-
-    if (xhr.status !== 200) {
-      alert('Unknown server error.');
 
       return false;
     }
@@ -221,21 +225,8 @@ jQuery(function initDrop($) {
   };
 
   go2.onlogin = function loggedIn(token) {
-    api.accessToken = token;
-    api.getConfig(function gotConfig(hasAccess) {
-      if (!hasAccess) {
-        alert('Your Google account has no access to the spreadsheet ' +
-          'specified.\n' +
-          'This may be an error, or you may have no access to this service.');
-
-        setTimeout(function() {
-          go2.logout();
-        });
-        return;
-      }
-
-      updateFilelist();
-    });
+    api.configStore.ACCESS_TOKEN = token;
+    api.getConfig();
 
     downloadlinkExpireDate =
       new Date((new Date()).getTime() + LINK_EXPIRES_IN * 1000);
@@ -244,8 +235,8 @@ jQuery(function initDrop($) {
     updateLoginStatus();
   };
   go2.onlogout = function loggedOut() {
-    api.accessToken = undefined;
-    api.awsConfig = undefined;
+    api.configStore.ACCESS_TOKEN = undefined;
+    api.clearConfig();
 
     $body.addClass('auth_needed');
     $filelist.empty();
