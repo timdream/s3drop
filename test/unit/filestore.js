@@ -163,6 +163,99 @@ test('getUploadInfo (with Content-MD5)', function() {
   dateStub.restore();
 });
 
+test('handleUploadComplete', function() {
+  var fileStore = new AmazonS3FileStore();
+  fileStore.config = {
+    'accessKeyId': 'FAKE_AWS_KEY',
+    'bucketName': 'FAKE_BUCKET_NAME',
+    'protocol': 'https',
+    'secretAccessKey': 'FAKE_AWS_SECRET'
+  };
+
+  var fakeXhr = sinon.useFakeXMLHttpRequest();
+  var request;
+  fakeXhr.onCreate = function(req) {
+    request = req;
+  };
+  var xhr = new XMLHttpRequest();
+  xhr.open('PUT', '/');
+  xhr.send();
+  request.respond(200, {}, '');
+
+  var uploadInfo = fileStore.handleUploadComplete(xhr);
+  deepEqual(uploadInfo, { success: true }, 'Upload complete');
+
+  fakeXhr.restore();
+});
+
+test('handleUploadComplete (errorInfo)', function() {
+  var fileStore = new AmazonS3FileStore();
+  fileStore.config = {
+    'accessKeyId': 'FAKE_AWS_KEY',
+    'bucketName': 'FAKE_BUCKET_NAME',
+    'protocol': 'https',
+    'secretAccessKey': 'FAKE_AWS_SECRET'
+  };
+
+  var fakeXhr = sinon.useFakeXMLHttpRequest();
+  var request;
+  fakeXhr.onCreate = function(req) {
+    request = req;
+  };
+  var xhr = new XMLHttpRequest();
+  xhr.open('PUT', '/');
+  xhr.send();
+
+  var xmlString = '<?xml version="1.0" encoding="UTF-8"?>' +
+    '<Error>' +
+      '<Code>NoSuchKey</Code>' +
+      '<Message>The resource you requested does not exist</Message>' +
+      '<Resource>/mybucket/myfoto.jpg</Resource>' +
+      '<RequestId>4442587FB7D0A2F9</RequestId>' +
+    '</Error>';
+
+  request.respond(404, {
+    'Content-Type': 'application/xml'
+  }, xmlString);
+
+  var uploadInfo = fileStore.handleUploadComplete(xhr);
+  deepEqual(uploadInfo,
+    {
+      success: false,
+      errorInfo: {
+        'code': 'NoSuchKey',
+        'message': 'The resource you requested does not exist'
+      }
+    }, 'ErrorInfo');
+
+  fakeXhr.restore();
+});
+
+test('handleUploadComplete (500)', function() {
+  var fileStore = new AmazonS3FileStore();
+  fileStore.config = {
+    'accessKeyId': 'FAKE_AWS_KEY',
+    'bucketName': 'FAKE_BUCKET_NAME',
+    'protocol': 'https',
+    'secretAccessKey': 'FAKE_AWS_SECRET'
+  };
+
+  var fakeXhr = sinon.useFakeXMLHttpRequest();
+  var request;
+  fakeXhr.onCreate = function(req) {
+    request = req;
+  };
+  var xhr = new XMLHttpRequest();
+  xhr.open('PUT', '/');
+  xhr.send();
+  request.respond(500, {}, '');
+
+  var uploadInfo = fileStore.handleUploadComplete(xhr);
+  deepEqual(uploadInfo, { success: false }, 'Upload error');
+
+  fakeXhr.restore();
+});
+
 test('listFiles', function() {
   var fileStore = new AmazonS3FileStore();
   fileStore.config = {

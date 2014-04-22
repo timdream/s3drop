@@ -8,6 +8,9 @@ FileStoreBase.prototype.getDownloadURL = function(uri) {
 FileStoreBase.prototype.getUploadInfo = function(uri) {
   throw new Error('Not implemented.');
 };
+FileStoreBase.prototype.handleUploadComplete = function(xhr) {
+  throw new Error('Not implemented.');
+};
 FileStoreBase.prototype.listFiles = function(callback) {
   throw new Error('Not implemented.');
 };
@@ -60,6 +63,31 @@ AmazonS3FileStore.prototype.getUploadInfo = function(uri, extraHeaders) {
     headers: this._getAWSAuthorizationInfo('PUT', uri, extraHeaders),
     method: 'PUT'
   }
+};
+
+AmazonS3FileStore.prototype.handleUploadComplete = function(xhr) {
+  this._updateAWSTimeOffset(xhr.getResponseHeader('Date'));
+
+  var xmlDoc = xhr.responseXML;
+  if (xmlDoc) {
+    var errorInfo = this._getAWSErrorInfo(xmlDoc);
+    if (errorInfo) {
+      return {
+        success: false,
+        errorInfo: errorInfo
+      };
+    }
+  }
+
+  if (xhr.status !== 200) {
+    return {
+      success: false
+    };
+  }
+
+  return {
+    success: true
+  };
 };
 
 AmazonS3FileStore.prototype.listFiles = function(callback) {
