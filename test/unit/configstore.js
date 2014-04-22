@@ -75,3 +75,23 @@ test('getConfig(error)', function() {
 
   configStore.getConfig();
 });
+
+test('clearConfig() (cancel)', function() {
+  var configStore = new GoogleSpreadsheetAWSS3ConfigStore();
+  configStore.ACCESS_TOKEN = 'FAKE_TOKEN';
+  configStore.SPREADSHEET_KEY = 'FAKE_SPREADSHEET_KEY';
+  configStore.GOOGLE_SPREADSHEET_API_URL =
+    './fake-spreadsheet-404.json?sp=%spreadsheetKey';
+
+  configStore.onconfigready = function(gotConfig) {
+    ok(false, 'Should not call onconfigready()');
+  };
+
+  configStore.onconfigerror = function(gotConfig) {
+    ok(false, 'Should not call onconfigerror()');
+  };
+
+  configStore.getConfig();
+  configStore.clearConfig();
+  ok(true, 'Done');
+});

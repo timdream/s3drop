@@ -5,10 +5,11 @@ var ConfigStoreBase = function() {
 };
 ConfigStoreBase.prototype.onconfigready = null;
 ConfigStoreBase.prototype.onconfigerror = null;
-ConfigStoreBase.prototype.start = function() {
+ConfigStoreBase.prototype.getConfig = function() {
+  throw new Error('Not implemented.');
 };
-ConfigStoreBase.prototype.stop = function() {
-
+ConfigStoreBase.prototype.clearConfig = function() {
+  throw new Error('Not implemented.');
 };
 
 var GoogleSpreadsheetAWSS3ConfigStore = function() {
@@ -22,7 +23,11 @@ GoogleSpreadsheetAWSS3ConfigStore.prototype.GOOGLE_SPREADSHEET_API_URL =
 GoogleSpreadsheetAWSS3ConfigStore.prototype.SPREADSHEET_KEY = '';
 GoogleSpreadsheetAWSS3ConfigStore.prototype.ACCESS_TOKEN = '';
 GoogleSpreadsheetAWSS3ConfigStore.prototype.getConfig = function() {
-  $.getJSON(
+  if (this.jqXhr) {
+    return;
+  }
+
+  this.jqXhr = $.getJSON(
     this.GOOGLE_SPREADSHEET_API_URL
       .replace('%spreadsheetKey', this.SPREADSHEET_KEY),
     {
@@ -33,6 +38,12 @@ GoogleSpreadsheetAWSS3ConfigStore.prototype.getConfig = function() {
     }
   ).done(
     function gotConfigResult(result) {
+      if (!this.jqXhr) {
+        return;
+      }
+
+      this.jqXhr = null;
+
       if (!result) {
         if (this.onconfigerror) {
           this.onconfigerror(false);
@@ -54,6 +65,12 @@ GoogleSpreadsheetAWSS3ConfigStore.prototype.getConfig = function() {
     }.bind(this)
   ).fail(
     function getConfigError() {
+      if (!this.jqXhr) {
+        return;
+      }
+
+      this.jqXhr = null;
+
       if (this.onconfigerror) {
         this.onconfigerror(false);
       }
@@ -62,4 +79,9 @@ GoogleSpreadsheetAWSS3ConfigStore.prototype.getConfig = function() {
 };
 GoogleSpreadsheetAWSS3ConfigStore.prototype.clearConfig = function() {
   this.config = null;
+  if (this.jqXhr) {
+    var jqXhr = this.jqXhr;
+    this.jqXhr = null;
+    jqXhr.abort();
+  }
 };
